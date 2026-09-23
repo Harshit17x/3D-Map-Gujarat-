@@ -19,6 +19,10 @@ export interface ViewerSetupResult {
   setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => void;
   toggleHillshadeLayer: (show: boolean) => void;
   toggleContourLayer: (show: boolean) => void;
+  zoomIn: (factor?: number) => void;
+  zoomOut: (factor?: number) => void;
+  toggleOrbit: () => boolean;
+  tiltToHorizon: () => void;
 }
 
 /**
@@ -99,7 +103,11 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
     setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => setSceneMode(viewer, mode),
     setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => setLightingPreset(viewer, preset),
     toggleHillshadeLayer: (show: boolean) => toggleHillshadeLayer(hillshadeLayer, show),
-    toggleContourLayer: (show: boolean) => toggleContourLayer(contourDataSource, show)
+    toggleContourLayer: (show: boolean) => toggleContourLayer(contourDataSource, show),
+    zoomIn: (factor?: number) => zoomIn(viewer, factor),
+    zoomOut: (factor?: number) => zoomOut(viewer, factor),
+    toggleOrbit: () => toggleOrbitMode(viewer),
+    tiltToHorizon: () => tiltToHorizon(viewer)
   };
 }
 
@@ -112,6 +120,7 @@ function tuneAtmosphereAndLighting(viewer: Cesium.Viewer): void {
 
   // Globe lighting brings out subtle surface terrain gradients
   globe.enableLighting = true;
+  globe.depthTestAgainstTerrain = true;
 
   // Atmospheric fog adds depth perception across the flat horizon
   scene.fog.enabled = true;
@@ -129,7 +138,6 @@ function tuneAtmosphereAndLighting(viewer: Cesium.Viewer): void {
  * Switch solar time to control shadows and light angle over the desert.
  */
 export function setLightingPreset(viewer: Cesium.Viewer, preset: 'golden' | 'noon' | 'sunset'): void {
-  // Use a fixed reference date in peak tourist/dry season (e.g., January 15)
   // Kutch local time is UTC+5:30.
   let utcHour = 11; // 16:30 local = 11:00 UTC (Golden Hour)
 
@@ -208,4 +216,60 @@ export function toggleHillshadeLayer(layer: Cesium.ImageryLayer, show: boolean):
  */
 export function toggleContourLayer(dataSource: Cesium.GeoJsonDataSource, show: boolean): void {
   dataSource.show = show;
+}
+
+/**
+ * Smoothly zooms the camera in toward the ground/target, respecting minimum altitude.
+ */
+export function zoomIn(viewer: Cesium.Viewer, factor = 0.35): void {
+  const camera = viewer.camera;
+  const carto = camera.positionCartographic;
+  const currentHeight = carto ? carto.height : 2500;
+  const minHeight = CAMERA_CONSTRAINTS.minZoomDistance;
+
+  if (currentHeight <= minHeight + 10) return;
+  const zoomAmount = Math.max((currentHeight - minHeight) * factor, 30);
+  camera.zoomIn(zoomAmount);
+}
+
+/**
+ * Smoothly zooms the camera out toward the sky, respecting maximum altitude.
+ */
+export function zoomOut(viewer: Cesium.Viewer, factor = 0.45): void {
+  const camera = viewer.camera;
+  const carto = camera.positionCartographic;
+  const currentHeight = carto ? carto.height : 2500;
+  const maxHeight = CAMERA_CONSTRAINTS.maxZoomDistance;
+
+  if (currentHeight >= maxHeight - 50) return;
+  const zoomAmount = Math.max(currentHeight * factor, 50);
+  camera.zoomOut(zoomAmount);
+}
+
+let orbitListener: (() => void) | null = null;
+
+/**
+ * Toggle cinematic 3D continuous rotation around the study area.
+ */
+export function toggleOrbitMode(viewer: Cesium.Viewer): boolean {
+  if (orbitListener) {
+    viewer.clock.onTick.removeEventListener(orbitListener);
+    orbitListener = null;
+    return false;
+  }
+
+  orbitListener = () => {
+    viewer.camera.rotate(Cesium.Cartesian3.UNIT_Z, 0.0012);
+  };
+  viewer.clock.onTick.addEventListener(orbitListener);
+  return true;
+}
+
+/**
+ * Instantly tilt camera to an oblique 3D angle (~22°) revealing the horizon and sky.
+ */
+export function tiltToHorizon(viewer: Cesium.Viewer): void {
+  const currentPitch = viewer.camera.pitch;
+  const targetPitch = Cesium.Math.toRadians(-22.0);
+  viewer.camera.lookUp(currentPitch - targetPitch);
 }

@@ -1,18 +1,39 @@
 import * as Cesium from 'cesium';
 import { initializeCesiumViewer } from './modules/terrain.ts';
 import { CAMERA_PRESETS } from './config/camera.config.ts';
+import { CustomPointsManager, CustomPoint } from './modules/customPoints.ts';
 
 async function bootstrapApp() {
   try {
     // 1. Initialize Cesium 3D Globe with White Rann Study Area
-    const { viewer, flyToStudyArea, setSceneMode, setLightingPreset, toggleHillshadeLayer, toggleContourLayer } =
-      await initializeCesiumViewer('cesiumContainer');
+    const {
+      viewer,
+      flyToStudyArea,
+      setSceneMode,
+      setLightingPreset,
+      toggleHillshadeLayer,
+      toggleContourLayer,
+      zoomIn,
+      zoomOut,
+      toggleOrbit,
+      tiltToHorizon
+    } = await initializeCesiumViewer('cesiumContainer');
 
-    // 2. Render HUD Overlay
+    // 2. Initialize 3D Custom Points System
+    const pointsManager = new CustomPointsManager(viewer);
+
+    // 3. Render HUD Overlay
     const hudContainer = document.getElementById('appHud');
     if (!hudContainer) return;
 
     hudContainer.innerHTML = `
+      <!-- Placement Instruction Banner (Shown when clicking map to drop point) -->
+      <div class="placement-banner" id="placementBanner" style="display: none;">
+        <div class="banner-pulse"></div>
+        <span class="banner-text">Click anywhere on the 3D map to drop your 3D pin</span>
+        <button class="banner-cancel-btn" id="btnCancelPlacement">Cancel</button>
+      </div>
+
       <!-- Header: Title & Info -->
       <header class="hud-header">
         <div class="glass-panel brand-card hud-interactive">
@@ -21,10 +42,10 @@ async function bootstrapApp() {
             White Rann of Kutch
           </div>
           <h1 class="brand-title">3D Interactive Map</h1>
-          <p class="brand-subtitle">20 km² High-Res Study Area • Gujarat, India</p>
+          <p class="brand-subtitle">White Salt Desert (Dhordo) • 23.84°N, 69.52°E</p>
         </div>
 
-        <!-- Controls: Mode Switcher & Presets -->
+        <!-- Controls: Mode Switcher & Actions -->
         <div class="control-deck hud-interactive">
           <!-- 3D / 2.5D / 2D View Switcher -->
           <div class="glass-panel segmented-group" id="viewModeGroup">
@@ -35,27 +56,63 @@ async function bootstrapApp() {
 
           <!-- Quick Action Buttons -->
           <div class="action-row">
-            <!-- Camera Presets Dropdown/Toggle -->
+            <!-- Add 3D Point Button -->
+            <button class="action-btn glass-panel" id="btnAddPoint" title="Click on map to drop an interactive 3D location pin">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+              </svg>
+              <span id="addPointLabel">+ Add 3D Point</span>
+            </button>
+
+            <!-- Saved Points List Drawer Button -->
+            <button class="action-btn glass-panel" id="btnTogglePointsList" title="View all saved 3D points">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              <span>Points (<span id="pointsBadgeCount">4</span>)</span>
+            </button>
+
+            <!-- 3D Horizon Tilt Button -->
+            <button class="action-btn glass-panel" id="btnTiltHorizon" title="Tilt camera to 3D horizon perspective">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 12h20M4 17l8-5 8 5M4 7l8 5 8-5"/>
+              </svg>
+              <span>3D Horizon</span>
+            </button>
+
+            <!-- 3D Orbit Button -->
+            <button class="action-btn glass-panel" id="btnToggleOrbit" title="Start/Stop 360° cinematic 3D rotation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-6.73"/>
+              </svg>
+              <span id="orbitLabel">3D Orbit</span>
+            </button>
+
+            <!-- Camera Presets -->
             <button class="action-btn glass-panel" id="btnCyclePreset" title="Cycle through camera tour viewpoints">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
               </svg>
-              <span id="presetLabel">View: Oblique</span>
+              <span id="presetLabel">View: Horizon</span>
             </button>
 
             <!-- Lighting Mode Button -->
             <button class="action-btn glass-panel" id="btnCycleLighting" title="Switch sun & lighting condition">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
               </svg>
               <span id="lightingLabel">Golden Hour</span>
             </button>
@@ -79,10 +136,10 @@ async function bootstrapApp() {
             </button>
 
             <!-- Reset to Dhordo Study Area -->
-            <button class="action-btn glass-panel" id="btnResetView" title="Re-center camera on the 20 km² study area">
+            <button class="action-btn glass-panel" id="btnResetView" title="Re-center camera on the White Desert">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
               </svg>
               Reset
             </button>
@@ -90,23 +147,124 @@ async function bootstrapApp() {
         </div>
       </header>
 
+      <!-- Floating Right-Hand Navigation Controls (Zoom In/Out) -->
+      <aside class="hud-nav-dock hud-interactive">
+        <div class="glass-panel nav-control-stack">
+          <button class="nav-icon-btn" id="btnZoomIn" title="Zoom In (+)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <div class="nav-btn-divider"></div>
+          <button class="nav-icon-btn" id="btnZoomOut" title="Zoom Out (−)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Saved Points Drawer (Hidden by default) -->
+      <div class="glass-panel points-drawer hud-interactive" id="pointsDrawer" style="display: none;">
+        <div class="drawer-header">
+          <span class="drawer-title">📍 Saved 3D Points</span>
+          <button class="modal-close-btn" id="btnCloseDrawer">&times;</button>
+        </div>
+        <div class="points-list" id="pointsListContainer"></div>
+      </div>
+
+      <!-- Point Details Floating Card (Shown when a 3D pin is clicked) -->
+      <div class="glass-panel point-detail-card hud-interactive" id="pointDetailCard" style="display: none;">
+        <div class="card-top">
+          <span class="card-cat-badge" id="cardCategoryBadge">📍 VIEWPOINT</span>
+          <button class="modal-close-btn" id="btnCloseCard">&times;</button>
+        </div>
+        <h3 class="card-title" id="cardTitle">Landmark Name</h3>
+        <p class="card-desc" id="cardDescription">Description text goes here.</p>
+        <div class="card-coords" id="cardCoords">23.8450° N, 69.5200° E</div>
+        <div class="card-btn-row">
+          <button class="card-fly-btn" id="btnFlyToSelected">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+            Fly Here in 3D
+          </button>
+          <button class="card-del-btn" id="btnDeleteSelected" title="Delete Point">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Point Creation Modal Dialog -->
+      <div class="modal-overlay" id="pointModalOverlay" style="display: none;">
+        <div class="glass-panel modal-dialog" id="pointModal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <span>📍</span> Add New 3D Point
+            </h3>
+            <button class="modal-close-btn" id="btnCloseModal">&times;</button>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Point Name *</label>
+            <input type="text" class="form-input" id="inputPointName" placeholder="e.g. Sunset Observation Deck, Desert Camp..." />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Category</label>
+            <div class="category-chips" id="categoryChips">
+              <button type="button" class="chip-btn selected" data-cat="viewpoint">📍 Viewpoint</button>
+              <button type="button" class="chip-btn" data-cat="camp">🎪 Camp / Tent</button>
+              <button type="button" class="chip-btn" data-cat="heritage">🏛️ Heritage</button>
+              <button type="button" class="chip-btn" data-cat="nature">🦩 Nature</button>
+              <button type="button" class="chip-btn" data-cat="custom">⭐ Custom</button>
+            </div>
+          </div>
+
+          <div class="coords-row">
+            <div class="form-field">
+              <label class="form-label">Latitude</label>
+              <input type="number" step="any" class="form-input" id="inputPointLat" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Longitude</label>
+              <input type="number" step="any" class="form-input" id="inputPointLon" />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Description (Optional)</label>
+            <textarea class="form-textarea" id="inputPointDesc" rows="2" placeholder="Brief notes about this location..."></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="btnCancelModal">Cancel</button>
+            <button type="button" class="btn-primary" id="btnSavePoint">Place 3D Pin</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer: Telemetry & Navigation Tips -->
       <footer class="hud-footer">
         <!-- Spatial Telemetry Readout -->
         <div class="glass-panel telemetry-card hud-interactive">
           <div class="stat-item">
             <span class="stat-label">Latitude</span>
-            <span class="stat-value" id="telemetryLat">23.8700° N</span>
+            <span class="stat-value" id="telemetryLat">23.8450° N</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-label">Longitude</span>
-            <span class="stat-value" id="telemetryLon">69.8500° E</span>
+            <span class="stat-value" id="telemetryLon">69.5200° E</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-label">Altitude</span>
-            <span class="stat-value" id="telemetryAlt">2,600 m</span>
+            <span class="stat-value" id="telemetryAlt">2,400 m</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
@@ -117,14 +275,14 @@ async function bootstrapApp() {
 
         <!-- Navigation Shortcut Hints -->
         <div class="glass-panel hint-pill">
-          <span><span class="key-badge">Left Click + Drag</span> Rotate</span>
+          <span><span class="key-badge">Click Pin</span> Info</span>
           <span><span class="key-badge">Right Click / Scroll</span> Zoom</span>
-          <span><span class="key-badge">Middle Drag</span> Tilt</span>
+          <span><span class="key-badge">Middle Drag</span> 3D Tilt</span>
         </div>
       </footer>
     `;
 
-    // 3. Bind View Mode Buttons (3D / Columbus / 2D)
+    // 4. Bind View Mode Buttons (3D / Columbus / 2D)
     const modeButtons = document.querySelectorAll<HTMLButtonElement>('#viewModeGroup button');
     modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -135,7 +293,7 @@ async function bootstrapApp() {
       });
     });
 
-    // 4. Bind Camera Preset Viewpoints
+    // 5. Bind Camera Tour Presets
     let currentPresetIndex = 0;
     const btnCyclePreset = document.getElementById('btnCyclePreset');
     const presetLabel = document.getElementById('presetLabel');
@@ -147,7 +305,7 @@ async function bootstrapApp() {
       flyToStudyArea(nextPreset.id);
     });
 
-    // 5. Bind Solar Lighting Presets
+    // 6. Bind Solar Lighting Presets
     const lightingModes: Array<'golden' | 'noon' | 'sunset'> = ['golden', 'noon', 'sunset'];
     const lightingLabels = ['Golden Hour', 'High Noon', 'Sunset'];
     let currentLightingIndex = 0;
@@ -161,11 +319,25 @@ async function bootstrapApp() {
       setLightingPreset(nextMode);
     });
 
-    // 6. Bind Reset View Button
+    // 7. Bind 3D Horizon Tilt & 3D Orbit
+    const btnTiltHorizon = document.getElementById('btnTiltHorizon');
+    btnTiltHorizon?.addEventListener('click', () => {
+      tiltToHorizon();
+    });
+
+    const btnToggleOrbit = document.getElementById('btnToggleOrbit');
+    const orbitLabel = document.getElementById('orbitLabel');
+    btnToggleOrbit?.addEventListener('click', () => {
+      const active = toggleOrbit();
+      btnToggleOrbit.classList.toggle('active', active);
+      if (orbitLabel) orbitLabel.textContent = active ? 'Stop Orbit' : '3D Orbit';
+    });
+
+    // 8. Bind Reset View Button
     const btnResetView = document.getElementById('btnResetView');
     btnResetView?.addEventListener('click', () => {
       currentPresetIndex = 0;
-      if (presetLabel) presetLabel.textContent = 'View: Oblique';
+      if (presetLabel) presetLabel.textContent = 'View: Horizon';
       flyToStudyArea('default');
     });
 
@@ -187,7 +359,223 @@ async function bootstrapApp() {
       btnToggleContours.classList.toggle('active', isContourOn);
     });
 
-    // 9. Real-Time Telemetry Listener
+    // 9. Bind Zoom In / Out Controls
+    const btnZoomIn = document.getElementById('btnZoomIn');
+    const btnZoomOut = document.getElementById('btnZoomOut');
+
+    btnZoomIn?.addEventListener('click', () => zoomIn());
+    btnZoomOut?.addEventListener('click', () => zoomOut());
+
+    // 10. Bind 3D Custom Points Interaction
+    const btnAddPoint = document.getElementById('btnAddPoint');
+    const placementBanner = document.getElementById('placementBanner');
+    const btnCancelPlacement = document.getElementById('btnCancelPlacement');
+
+    const pointModalOverlay = document.getElementById('pointModalOverlay');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnCancelModal = document.getElementById('btnCancelModal');
+    const btnSavePoint = document.getElementById('btnSavePoint');
+    const inputPointName = document.getElementById('inputPointName') as HTMLInputElement;
+    const inputPointLat = document.getElementById('inputPointLat') as HTMLInputElement;
+    const inputPointLon = document.getElementById('inputPointLon') as HTMLInputElement;
+    const inputPointDesc = document.getElementById('inputPointDesc') as HTMLTextAreaElement;
+
+    let selectedCategory: CustomPoint['category'] = 'viewpoint';
+    const categoryChips = document.querySelectorAll<HTMLButtonElement>('#categoryChips button');
+    categoryChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        categoryChips.forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        selectedCategory = chip.getAttribute('data-cat') as CustomPoint['category'];
+      });
+    });
+
+    // Toggle Add Point mode
+    btnAddPoint?.addEventListener('click', () => {
+      pointsManager.setAddMode(true);
+    });
+
+    btnCancelPlacement?.addEventListener('click', () => {
+      pointsManager.setAddMode(false);
+    });
+
+    // Update banner & button state when mode changes
+    pointsManager.onAddModeChanged((isActive) => {
+      if (placementBanner) placementBanner.style.display = isActive ? 'flex' : 'none';
+      if (btnAddPoint) btnAddPoint.classList.toggle('active-mode', isActive);
+    });
+
+    // Open Modal when user clicks map in Add Mode
+    pointsManager.onMapClickForNewPoint((lat, lon) => {
+      if (inputPointLat) inputPointLat.value = lat.toFixed(5);
+      if (inputPointLon) inputPointLon.value = lon.toFixed(5);
+      if (inputPointName) {
+        inputPointName.value = '';
+        setTimeout(() => inputPointName.focus(), 100);
+      }
+      if (inputPointDesc) inputPointDesc.value = '';
+      if (pointModalOverlay) pointModalOverlay.style.display = 'flex';
+    });
+
+    const closeModal = () => {
+      if (pointModalOverlay) pointModalOverlay.style.display = 'none';
+    };
+    btnCloseModal?.addEventListener('click', closeModal);
+    btnCancelModal?.addEventListener('click', closeModal);
+
+    // Save Point handler
+    btnSavePoint?.addEventListener('click', () => {
+      const name = inputPointName?.value.trim() || 'My 3D Point';
+      const lat = parseFloat(inputPointLat?.value) || 23.845;
+      const lon = parseFloat(inputPointLon?.value) || 69.520;
+      const desc = inputPointDesc?.value.trim() || '';
+
+      pointsManager.addPoint({
+        name,
+        category: selectedCategory,
+        latitude: lat,
+        longitude: lon,
+        altitude: 15,
+        description: desc
+      });
+
+      closeModal();
+    });
+
+    // Point Details Card UI
+    let selectedPointId: string | null = null;
+    const pointDetailCard = document.getElementById('pointDetailCard');
+    const cardCategoryBadge = document.getElementById('cardCategoryBadge');
+    const cardTitle = document.getElementById('cardTitle');
+    const cardDescription = document.getElementById('cardDescription');
+    const cardCoords = document.getElementById('cardCoords');
+    const btnCloseCard = document.getElementById('btnCloseCard');
+    const btnFlyToSelected = document.getElementById('btnFlyToSelected');
+    const btnDeleteSelected = document.getElementById('btnDeleteSelected');
+
+    btnCloseCard?.addEventListener('click', () => {
+      if (pointDetailCard) pointDetailCard.style.display = 'none';
+      selectedPointId = null;
+    });
+
+    btnFlyToSelected?.addEventListener('click', () => {
+      if (selectedPointId) {
+        pointsManager.flyToPoint(selectedPointId);
+      }
+    });
+
+    btnDeleteSelected?.addEventListener('click', () => {
+      if (selectedPointId) {
+        pointsManager.deletePoint(selectedPointId);
+        if (pointDetailCard) pointDetailCard.style.display = 'none';
+        selectedPointId = null;
+      }
+    });
+
+    pointsManager.onPointSelected((point) => {
+      selectedPointId = point.id;
+      if (cardTitle) cardTitle.textContent = point.name;
+      if (cardDescription) cardDescription.textContent = point.description || 'Custom 3D point placed on the Kutch map.';
+      if (cardCoords) cardCoords.textContent = `${point.latitude.toFixed(4)}° N, ${point.longitude.toFixed(4)}° E`;
+
+      if (cardCategoryBadge) {
+        cardCategoryBadge.textContent = `${point.category.toUpperCase()}`;
+        cardCategoryBadge.style.background = `rgba(56, 189, 248, 0.15)`;
+        cardCategoryBadge.style.color = '#38bdf8';
+      }
+
+      if (pointDetailCard) pointDetailCard.style.display = 'flex';
+    });
+
+    // Saved Points Drawer UI
+    const pointsDrawer = document.getElementById('pointsDrawer');
+    const btnTogglePointsList = document.getElementById('btnTogglePointsList');
+    const btnCloseDrawer = document.getElementById('btnCloseDrawer');
+    const pointsListContainer = document.getElementById('pointsListContainer');
+    const pointsBadgeCount = document.getElementById('pointsBadgeCount');
+
+    btnTogglePointsList?.addEventListener('click', () => {
+      if (pointsDrawer) {
+        const isHidden = pointsDrawer.style.display === 'none';
+        pointsDrawer.style.display = isHidden ? 'flex' : 'none';
+      }
+    });
+
+    btnCloseDrawer?.addEventListener('click', () => {
+      if (pointsDrawer) pointsDrawer.style.display = 'none';
+    });
+
+    const updatePointsDrawerList = (points: CustomPoint[]) => {
+      if (pointsBadgeCount) pointsBadgeCount.textContent = points.length.toString();
+      if (!pointsListContainer) return;
+
+      if (points.length === 0) {
+        pointsListContainer.innerHTML = `<div style="padding: 1rem; color: #64748b; font-size: 0.8rem; text-align: center;">No points saved yet. Click "+ Add 3D Point" to drop one!</div>`;
+        return;
+      }
+
+      pointsListContainer.innerHTML = points.map(p => `
+        <div class="point-item" data-id="${p.id}">
+          <div class="point-item-info">
+            <span class="point-item-icon">📍</span>
+            <div class="point-item-text">
+              <span class="point-item-name">${p.name}</span>
+              <span class="point-item-sub">${p.latitude.toFixed(3)}° N, ${p.longitude.toFixed(3)}° E</span>
+            </div>
+          </div>
+          <button class="point-item-del" data-delete-id="${p.id}" title="Delete">&times;</button>
+        </div>
+      `).join('');
+
+      // Bind click on items to fly
+      pointsListContainer.querySelectorAll<HTMLDivElement>('.point-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          if ((e.target as HTMLElement).classList.contains('point-item-del')) return;
+          const id = item.getAttribute('data-id');
+          if (id) {
+            pointsManager.flyToPoint(id);
+            const pt = points.find(p => p.id === id);
+            if (pt) pointsManager['onPointSelectedCallback']?.(pt);
+          }
+        });
+      });
+
+      // Bind delete button
+      pointsListContainer.querySelectorAll<HTMLButtonElement>('.point-item-del').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-delete-id');
+          if (id) pointsManager.deletePoint(id);
+        });
+      });
+    };
+
+    pointsManager.onPointsUpdated((pts) => {
+      updatePointsDrawerList(pts);
+    });
+
+    // Populate initial points list
+    updatePointsDrawerList(pointsManager.getPoints());
+
+    // 11. Keyboard Shortcuts (+ / -, Esc)
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'Escape') {
+        pointsManager.setAddMode(false);
+        closeModal();
+        if (pointDetailCard) pointDetailCard.style.display = 'none';
+        if (pointsDrawer) pointsDrawer.style.display = 'none';
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        zoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        zoomOut();
+      }
+    });
+
+    // 12. Real-Time Telemetry Listener
     const latEl = document.getElementById('telemetryLat');
     const lonEl = document.getElementById('telemetryLon');
     const altEl = document.getElementById('telemetryAlt');
@@ -215,7 +603,7 @@ async function bootstrapApp() {
       }
     });
 
-    console.log('✅ Kutch 3D Interactive Map (Phase 1) successfully initialized.');
+    console.log('✅ Kutch 3D Interactive Map initialized with 3D Custom Points support.');
   } catch (err) {
     console.error('Failed to initialize 3D Map:', err);
   }
