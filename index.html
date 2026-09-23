@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Kutch 3D Interactive Map | White Rann of Kutch</title>
+    <meta name="description" content="A 3D interactive satellite map of the White Rann desert in Kutch, Gujarat, India, powered by CesiumJS." />
+    
+    <!-- Modern Typography: Google Fonts (Outfit & Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Application CSS -->
+    <link rel="stylesheet" href="/src/ui/styles.css" />
+  </head>
+  <body>
+    <!-- Full-screen Cesium WebGL Canvas Container -->
+    <div id="cesiumContainer"></div>
+
+    <!-- UI Overlay for Controls & HUD (populated in Phase 1) -->
+    <div id="appHud"></div>
+
+    <!-- App Entry Point -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
