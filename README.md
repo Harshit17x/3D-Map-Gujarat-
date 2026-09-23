@@ -1,44 +1,44 @@
-# 3D Interactive Map of Gujarat — White Rann of Kutch 🗺️✨
+# 3D Interactive Map of Gujarat — White Rann of Kutch
 
-[![CesiumJS](https://img.shields.io/badge/CesiumJS-1.120+-blue.svg?logo=cesium)](https://cesium.com/platform/cesiumjs/)
-[![Vite](https://img.shields.io/badge/Vite-5.4+-646CFF.svg?logo=vite)](https://vitejs.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![CesiumJS](https://img.shields.io/badge/CesiumJS-1.120+-blue.svg)](https://cesium.com/platform/cesiumjs/)
+[![Vite](https://img.shields.io/badge/Vite-5.4+-646CFF.svg)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-3178C6.svg)](https://www.typescriptlang.org/)
 [![Copernicus DEM](https://img.shields.io/badge/Data-Copernicus%20GLO--30-008080.svg)](https://spacedata.copernicus.eu/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An interactive, high-performance **3D Digital Terrain Map** of the **White Rann of Kutch (Gujarat, India)** built with **CesiumJS**, **Vite**, and **TypeScript**. 
+An interactive, high-performance **3D Digital Terrain Map** of the **White Rann of Kutch (Gujarat, India)** built with **CesiumJS**, **Vite**, and **TypeScript**.
 
 The application visualizes high-resolution satellite imagery integrated with a **Copernicus GLO-30 Digital Terrain Model (DTM)**, multi-directional hillshading, 2m-interval elevation contour lines, real-time dynamic solar illumination, and a full-featured **3D Custom Points Management System**.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### 1. 🏔️ 3D Digital Terrain & High-Resolution Satellite Imagery
+### 1. 3D Digital Terrain and High-Resolution Satellite Imagery
 - **Terrain Relief & Globe**: Powered by CesiumJS with high-resolution satellite imagery, true-to-scale terrain rendering, and study area boundary clipping (Dhordo / White Desert 20 km² region: `69.828°E–69.872°E, 23.850°N–23.890°N`).
 - **Dynamic Terrain Providers**: Seamless fallback between Cesium World Terrain and Ellipsoid with customizable vertical exaggeration for flat salt-marsh relief.
 
-### 2. 🔬 Analytical Overlays (DTM Pipeline)
+### 2. Analytical Overlays (DTM Pipeline)
 - **Multi-directional Hillshade**: 8-azimuth composite RGBA hillshade layer derived from the Copernicus GLO-30 dataset with Z-factor exaggeration (3.0×) to reveal subtle surface undulations and salt pans.
 - **Topographic Contour Lines**: 2m-interval elevation contour lines vectorized directly into GeoJSON and clamped directly to the 3D globe terrain.
 - **Toggleable Overlays**: Instant HUD toggle buttons for Hillshade and Contour layers with smooth alpha blending.
 
-### 3. 📍 Interactive 3D Custom Points Management System
+### 3. Interactive 3D Custom Points Management System
 - **Click-to-Place Pinning**: Click "+ Add 3D Point" in the HUD, then click anywhere on the 3D terrain to capture exact Cartesian coordinates and raycasted ground elevation.
 - **Rich Metadata Modal**: Define Name, Category (*Viewpoint*, *Landmark*, *Camp*, *Research*, *Hazard*), and detailed descriptions.
 - **Interactive Marker Visualizations**: Color-coded billboard pins and point labels clamped to ground with selection indicators.
 - **Fly-To & Inspection**: Click any pin or list item to smoothly fly the camera to the target location with point detail cards.
 - **Local Persistence**: Automatic synchronization to browser `localStorage` with real-time badge count.
 
-### 4. ☀️ Real-Time Solar Illumination & Lighting Presets
+### 4. Real-Time Solar Illumination and Lighting Presets
 - **Julian Date Solar Simulation**: Uses Cesium's physical lighting engine (`globe.enableLighting = true`) with astronomical Julian dates calculated for Kutch's geographic coordinates (`23.8° N, 69.8° E`).
 - **One-Click Lighting Presets**:
-  - 🌅 **Dawn / Golden Hour**: Warm, low-angle grazing light accentuating subtle terrain contours and salt crusts.
-  - ☀️ **Noon**: High-overhead sun with maximum visibility and vivid salt reflectivity.
-  - 🌇 **Sunset**: Deep orange and twilight ambient tones.
-  - 🌌 **Night**: Starry celestial skybox with minimal ambient lunar glow.
+  - **Dawn / Golden Hour**: Warm, low-angle grazing light accentuating subtle terrain contours and salt crusts.
+  - **Noon**: High-overhead sun with maximum visibility and vivid salt reflectivity.
+  - **Sunset**: Deep orange and twilight ambient tones.
+  - **Night**: Starry celestial skybox with minimal ambient lunar glow.
 
-### 5. 🎥 Cinematic Camera Controls & Navigation
+### 5. Cinematic Camera Controls and Navigation
 - **View Modes**:
   - **3D Perspective**: True ellipsoidal 3D globe.
   - **2.5D Columbus View**: Planar perspective mode with elevation extrusion.
@@ -48,13 +48,13 @@ The application visualizes high-resolution satellite imagery integrated with a *
 - **3D Horizon Tilt**: Quick-tilt mechanism switching between top-down overview and dramatic low-angle horizon inspection.
 - **Zoom Stack**: Floating right-hand zoom controls (`+` / `−`) and smooth mouse-wheel zooming.
 
-### 6. 📊 Real-Time HUD Telemetry & Modern Glassmorphic UI
+### 6. Real-Time HUD Telemetry and Glassmorphic UI
 - **Live Flight Telemetry**: Live readout of Camera Latitude, Longitude, Altitude (m / km), and Compass Heading.
-- **Responsive Dark HUD**: Frosted glassmorphism panels styled with modern typography (Outfit & Inter), SVG iconography, and zero-dependency Vanilla CSS.
+- **Responsive Dark HUD**: Frosted glassmorphism panels styled with modern typography (Outfit & Inter) and zero-dependency Vanilla CSS.
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Key | Action |
 | :--- | :--- |
@@ -67,7 +67,7 @@ The application visualizes high-resolution satellite imagery integrated with a *
 
 ---
 
-## 📁 Project Architecture
+## Project Architecture
 
 ```
 3D-Map-Gujarat-/
@@ -100,11 +100,11 @@ The application visualizes high-resolution satellite imagery integrated with a *
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18.0.0 or higher recommended)
+- Node.js (v18.0.0 or higher recommended)
 - `npm` or `yarn` / `pnpm`
 - (Optional for DTM processing) Python 3.9+ with `rasterio`, `numpy`, `scipy`, `shapely`, `fiona`
 
@@ -153,7 +153,7 @@ npm run preview
 
 ---
 
-## 🛠️ DTM Processing Pipeline (Python)
+## DTM Processing Pipeline (Python)
 
 To re-generate or modify the analytical hillshade and contour overlays from raw GeoTIFF elevation rasters:
 
@@ -172,7 +172,7 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
 
 ---
 
-## 🛰️ Data Credits & Attributions
+## Data Credits and Attributions
 
 - **Elevation Model**: [Copernicus DEM GLO-30](https://spacedata.copernicus.eu/) (European Space Agency / Sinergise)
 - **3D Globe Engine**: [CesiumJS](https://cesium.com/platform/cesiumjs/)
@@ -180,6 +180,6 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
