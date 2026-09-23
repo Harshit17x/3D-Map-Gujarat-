@@ -5,7 +5,7 @@ import { CAMERA_PRESETS } from './config/camera.config.ts';
 async function bootstrapApp() {
   try {
     // 1. Initialize Cesium 3D Globe with White Rann Study Area
-    const { viewer, flyToStudyArea, setSceneMode, setLightingPreset } =
+    const { viewer, flyToStudyArea, setSceneMode, setLightingPreset, zoomIn, zoomOut, toggleOrbit, tiltToHorizon } =
       await initializeCesiumViewer('cesiumContainer');
 
     // 2. Render HUD Overlay
@@ -21,7 +21,7 @@ async function bootstrapApp() {
             White Rann of Kutch
           </div>
           <h1 class="brand-title">3D Interactive Map</h1>
-          <p class="brand-subtitle">20 km² High-Res Study Area • Gujarat, India</p>
+          <p class="brand-subtitle">White Salt Desert (Dhordo) • 23.84°N, 69.52°E</p>
         </div>
 
         <!-- Controls: Mode Switcher & Presets -->
@@ -60,6 +60,22 @@ async function bootstrapApp() {
               <span id="lightingLabel">Golden Hour</span>
             </button>
 
+            <!-- 3D Horizon Tilt Button -->
+            <button class="action-btn glass-panel" id="btnTiltHorizon" title="Tilt camera to 3D horizon perspective">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 12h20M4 17l8-5 8 5M4 7l8 5 8-5"/>
+              </svg>
+              <span>3D Horizon</span>
+            </button>
+
+            <!-- 3D Orbit Button -->
+            <button class="action-btn glass-panel" id="btnToggleOrbit" title="Start/Stop 360° cinematic 3D rotation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-6.73"/>
+              </svg>
+              <span id="orbitLabel">3D Orbit</span>
+            </button>
+
             <!-- Reset to Dhordo Study Area -->
             <button class="action-btn glass-panel" id="btnResetView" title="Re-center camera on the 20 km² study area">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -72,23 +88,41 @@ async function bootstrapApp() {
         </div>
       </header>
 
+      <!-- Floating Right-Hand Navigation Controls (Zoom In/Out) -->
+      <aside class="hud-nav-dock hud-interactive">
+        <div class="glass-panel nav-control-stack">
+          <button class="nav-icon-btn" id="btnZoomIn" title="Zoom In (+)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <div class="nav-btn-divider"></div>
+          <button class="nav-icon-btn" id="btnZoomOut" title="Zoom Out (−)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
       <!-- Footer: Telemetry & Navigation Tips -->
       <footer class="hud-footer">
         <!-- Spatial Telemetry Readout -->
         <div class="glass-panel telemetry-card hud-interactive">
           <div class="stat-item">
             <span class="stat-label">Latitude</span>
-            <span class="stat-value" id="telemetryLat">23.8700° N</span>
+            <span class="stat-value" id="telemetryLat">23.8450° N</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-label">Longitude</span>
-            <span class="stat-value" id="telemetryLon">69.8500° E</span>
+            <span class="stat-value" id="telemetryLon">69.5200° E</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-label">Altitude</span>
-            <span class="stat-value" id="telemetryAlt">2,600 m</span>
+            <span class="stat-value" id="telemetryAlt">2,400 m</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
@@ -100,7 +134,7 @@ async function bootstrapApp() {
         <!-- Navigation Shortcut Hints -->
         <div class="glass-panel hint-pill">
           <span><span class="key-badge">Left Click + Drag</span> Rotate</span>
-          <span><span class="key-badge">Right Click / Scroll</span> Zoom</span>
+          <span><span class="key-badge">+ / − or Scroll</span> Zoom</span>
           <span><span class="key-badge">Middle Drag</span> Tilt</span>
         </div>
       </footer>
@@ -151,7 +185,42 @@ async function bootstrapApp() {
       flyToStudyArea('default');
     });
 
-    // 7. Real-Time Telemetry Listener
+    // 7. Bind 3D Horizon Tilt Button
+    const btnTiltHorizon = document.getElementById('btnTiltHorizon');
+    btnTiltHorizon?.addEventListener('click', () => {
+      tiltToHorizon();
+    });
+
+    // 8. Bind 3D Orbit Continuous Rotation Button
+    const btnToggleOrbit = document.getElementById('btnToggleOrbit');
+    const orbitLabel = document.getElementById('orbitLabel');
+    btnToggleOrbit?.addEventListener('click', () => {
+      const active = toggleOrbit();
+      btnToggleOrbit.classList.toggle('active', active);
+      if (orbitLabel) orbitLabel.textContent = active ? 'Stop Orbit' : '3D Orbit';
+    });
+
+    // 9. Bind Zoom In / Out Controls
+    const btnZoomIn = document.getElementById('btnZoomIn');
+    const btnZoomOut = document.getElementById('btnZoomOut');
+
+    btnZoomIn?.addEventListener('click', () => zoomIn());
+    btnZoomOut?.addEventListener('click', () => zoomOut());
+
+    // Keyboard Shortcuts (+ / -) for Zoom
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        zoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        zoomOut();
+      }
+    });
+
+    // 8. Real-Time Telemetry Listener
     const latEl = document.getElementById('telemetryLat');
     const lonEl = document.getElementById('telemetryLon');
     const altEl = document.getElementById('telemetryAlt');

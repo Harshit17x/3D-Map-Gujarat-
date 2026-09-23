@@ -268,6 +268,60 @@ html, body {
 }
 
 /* ==========================================================================
+   Floating Navigation Controls (Zoom In/Out Dock)
+   ========================================================================== */
+.hud-nav-dock {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 20;
+}
+
+.nav-control-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.3rem;
+  border-radius: 12px;
+}
+
+.nav-icon-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #38bdf8;
+  transform: scale(1.08);
+}
+
+.nav-icon-btn:active {
+  transform: scale(0.95);
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.nav-btn-divider {
+  width: 24px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0.2rem 0;
+}
+
+/* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
 @media (max-width: 768px) {
@@ -288,6 +342,13 @@ html, body {
     align-items: stretch;
   }
 
+  .hud-nav-dock {
+    right: 0.75rem;
+    top: auto;
+    bottom: 5.5rem;
+    transform: none;
+  }
+
   .telemetry-card {
     gap: 0.75rem;
     overflow-x: auto;
@@ -297,3 +358,4 @@ html, body {
     display: none;
   }
 }
+

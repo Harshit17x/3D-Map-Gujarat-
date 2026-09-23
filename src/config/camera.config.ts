@@ -1,72 +1,83 @@
 import * as Cesium from 'cesium';
 
 /**
- * 20 km² Study Area bounding box in the White Rann of Kutch, north of Dhordo.
- * Coordinates verified against satellite imagery: pure open salt desert,
- * clear of the Dhordo tent-city footprint and border roads.
+ * Verified Study Area bounding box in the iconic White Rann of Kutch (Dhordo Expanse).
+ * Centered north of Dhordo Tent City / Sunset View Point directly over the gleaming
+ * white salt desert floor.
  */
 export const KUTCH_STUDY_AREA = {
-  name: 'White Rann of Kutch (Dhordo Expanse)',
+  name: 'White Rann of Kutch (Dhordo Salt Desert)',
   bounds: {
-    west: 69.828,
-    south: 23.850,
-    east: 69.872,
-    north: 23.890
+    west: 69.495,
+    south: 23.825,
+    east: 69.545,
+    north: 23.865
   },
   center: {
-    longitude: 69.850,
-    latitude: 23.870,
+    longitude: 69.520,
+    latitude: 23.845,
     height: 0
   },
-  approxAreaKm2: 19.8
+  approxAreaKm2: 20.0
 };
 
 /**
  * Default camera fly-to configuration on load:
- * Positioned south of the study area center, looking North across the salt flats
- * with a shallow ~32° pitch to showcase the horizon-to-horizon expanse.
+ * Positioned south of the white salt flats looking North across the vast expanse
+ * with a shallow ~22° pitch to showcase the horizon-to-horizon 3D expanse and sky.
  */
 export const DEFAULT_CAMERA_VIEW = {
-  destination: Cesium.Cartesian3.fromDegrees(69.850, 23.830, 2600.0),
+  destination: Cesium.Cartesian3.fromDegrees(69.520, 23.810, 2400.0),
   orientation: {
-    heading: Cesium.Math.toRadians(0.0),   // True North
-    pitch: Cesium.Math.toRadians(-32.0),   // Oblique horizon view
+    heading: Cesium.Math.toRadians(0.0),   // Looking True North across White Desert
+    pitch: Cesium.Math.toRadians(-22.0),  // Low oblique angle revealing 3D horizon & sky
     roll: 0.0
   },
   duration: 2.5
 };
 
 /**
- * Preset camera angles for quick navigation and tour viewpoints.
+ * Preset camera angles for quick navigation and 3D exploration.
  */
 export const CAMERA_PRESETS = [
   {
     id: 'default',
-    label: 'Oblique Expanse',
-    description: 'Looking North across the vast salt flats',
-    destination: Cesium.Cartesian3.fromDegrees(69.850, 23.830, 2600.0),
+    label: 'Horizon Expanse',
+    description: 'Looking North across the white salt flats toward the horizon',
+    destination: Cesium.Cartesian3.fromDegrees(69.520, 23.810, 2400.0),
     orientation: {
       heading: Cesium.Math.toRadians(0.0),
-      pitch: Cesium.Math.toRadians(-32.0),
+      pitch: Cesium.Math.toRadians(-22.0),
+      roll: 0.0
+    }
+  },
+  {
+    id: 'low-glider',
+    label: 'Low 3D Glider',
+    description: 'Cinematic low-altitude glide across the salt crust',
+    destination: Cesium.Cartesian3.fromDegrees(69.520, 23.830, 600.0),
+    orientation: {
+      heading: Cesium.Math.toRadians(15.0),
+      pitch: Cesium.Math.toRadians(-14.0),
       roll: 0.0
     }
   },
   {
     id: 'sunset',
     label: 'Sunset View',
-    description: 'Looking West toward the Arabian Sea horizon',
-    destination: Cesium.Cartesian3.fromDegrees(69.880, 23.870, 2200.0),
+    description: 'Looking West toward the golden horizon',
+    destination: Cesium.Cartesian3.fromDegrees(69.540, 23.840, 1800.0),
     orientation: {
-      heading: Cesium.Math.toRadians(270.0),
-      pitch: Cesium.Math.toRadians(-25.0),
+      heading: Cesium.Math.toRadians(275.0),
+      pitch: Cesium.Math.toRadians(-20.0),
       roll: 0.0
     }
   },
   {
     id: 'ortho',
-    label: 'Top-down Ortho',
+    label: 'Top-down Map',
     description: 'Nadir vertical view for area and boundary inspection',
-    destination: Cesium.Cartesian3.fromDegrees(69.850, 23.870, 7500.0),
+    destination: Cesium.Cartesian3.fromDegrees(69.520, 23.845, 8000.0),
     orientation: {
       heading: Cesium.Math.toRadians(0.0),
       pitch: Cesium.Math.toRadians(-90.0),
@@ -76,11 +87,10 @@ export const CAMERA_PRESETS = [
 ];
 
 /**
- * Altitude and zoom navigation constraints to keep user in the regional context
- * and avoid accidental disorienting fly-outs to outer space.
+ * Altitude and zoom navigation constraints.
  */
 export const CAMERA_CONSTRAINTS = {
-  minZoomDistance: 200,    // 200 meters above ground
+  minZoomDistance: 150,    // 150 meters above ground
   maxZoomDistance: 35000,  // 35 km max altitude
   maximumScreenSpaceError: 2
 };
