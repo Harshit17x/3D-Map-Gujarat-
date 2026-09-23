@@ -7,7 +7,9 @@ import {
 } from '../config/camera.config.ts';
 import {
   createPrimaryImageryProvider,
-  createPrimaryTerrainProvider
+  createPrimaryTerrainProvider,
+  createHillshadeImageryProvider,
+  createContourDataSource
 } from '../config/layer.config.ts';
 
 export interface ViewerSetupResult {
@@ -15,6 +17,8 @@ export interface ViewerSetupResult {
   flyToStudyArea: (presetId?: string) => void;
   setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => void;
   setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => void;
+  toggleHillshadeLayer: (show: boolean) => void;
+  toggleContourLayer: (show: boolean) => void;
   zoomIn: (factor?: number) => void;
   zoomOut: (factor?: number) => void;
   toggleOrbit: () => boolean;
@@ -74,6 +78,22 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
   // Add subtle bounding outline for the 20 km² study area
   drawStudyAreaBoundary(viewer);
 
+  // ── Analytical Overlays (start hidden; toggled by HUD buttons) ────────────
+
+  // Multidirectional hillshade — additive analytical layer over satellite imagery.
+  // alpha=0.65 gives a translucent wash that reveals micro-relief without obscuring imagery.
+  const hillshadeProvider = await createHillshadeImageryProvider();
+  const hillshadeLayer = viewer.imageryLayers.addImageryProvider(hillshadeProvider);
+  hillshadeLayer.show  = false;
+  hillshadeLayer.alpha = 0.65;
+
+  // 2m-interval contour lines clamped to terrain surface.
+  const contourDataSource = await createContourDataSource();
+  await viewer.dataSources.add(contourDataSource);
+  contourDataSource.show = false;
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Fly directly to the default oblique camera view on load
   flyToStudyArea(viewer, 'default');
 
@@ -82,6 +102,8 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
     flyToStudyArea: (presetId?: string) => flyToStudyArea(viewer, presetId),
     setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => setSceneMode(viewer, mode),
     setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => setLightingPreset(viewer, preset),
+    toggleHillshadeLayer: (show: boolean) => toggleHillshadeLayer(hillshadeLayer, show),
+    toggleContourLayer: (show: boolean) => toggleContourLayer(contourDataSource, show),
     zoomIn: (factor?: number) => zoomIn(viewer, factor),
     zoomOut: (factor?: number) => zoomOut(viewer, factor),
     toggleOrbit: () => toggleOrbitMode(viewer),
@@ -178,6 +200,22 @@ function drawStudyAreaBoundary(viewer: Cesium.Viewer): void {
       height: 2
     }
   });
+}
+
+/**
+ * Show or hide the analytical multidirectional hillshade imagery layer.
+ * Mirrors the style of setSceneMode/setLightingPreset.
+ */
+export function toggleHillshadeLayer(layer: Cesium.ImageryLayer, show: boolean): void {
+  layer.show = show;
+}
+
+/**
+ * Show or hide the 2m-interval contour lines data source.
+ * Mirrors the style of setSceneMode/setLightingPreset.
+ */
+export function toggleContourLayer(dataSource: Cesium.GeoJsonDataSource, show: boolean): void {
+  dataSource.show = show;
 }
 
 /**

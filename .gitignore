@@ -24,5 +24,13 @@ Thumbs.db
 # Logs
 npm-debug.log*
 yarn-debug.log*
+yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Raw DTM source data (large binary inputs — not source code)
+# Processed outputs under public/assets/terrain/ are committed intentionally.
+output_hh.tif
+rasters_COP30.tar.gz
+*.tar.gz
+src/data/raw/

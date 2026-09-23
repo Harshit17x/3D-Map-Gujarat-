@@ -11,6 +11,8 @@ async function bootstrapApp() {
       flyToStudyArea,
       setSceneMode,
       setLightingPreset,
+      toggleHillshadeLayer,
+      toggleContourLayer,
       zoomIn,
       zoomOut,
       toggleOrbit,
@@ -113,6 +115,24 @@ async function bootstrapApp() {
                 <line x1="21" y1="12" x2="23" y2="12"/>
               </svg>
               <span id="lightingLabel">Golden Hour</span>
+            </button>
+
+            <!-- Hillshade Analytical Overlay Toggle -->
+            <button class="action-btn glass-panel" id="btnToggleHillshade" title="Toggle multidirectional hillshade analytical overlay">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 20 9 4 15 14 19 8 21 20 3 20"></polygon>
+              </svg>
+              <span>Hillshade</span>
+            </button>
+
+            <!-- Contour Lines Toggle -->
+            <button class="action-btn glass-panel" id="btnToggleContours" title="Toggle 2m-interval contour lines from Copernicus GLO-30 DTM">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12 Q7 6 12 12 Q17 18 21 12"></path>
+                <path d="M3 7 Q7 3 12 7 Q17 11 21 7" opacity="0.5"></path>
+                <path d="M3 17 Q7 13 12 17 Q17 21 21 17" opacity="0.5"></path>
+              </svg>
+              <span>Contours</span>
             </button>
 
             <!-- Reset to Dhordo Study Area -->
@@ -319,6 +339,24 @@ async function bootstrapApp() {
       currentPresetIndex = 0;
       if (presetLabel) presetLabel.textContent = 'View: Horizon';
       flyToStudyArea('default');
+    });
+
+    // 7. Bind Hillshade Overlay Toggle
+    let isHillshadeOn = false;
+    const btnToggleHillshade = document.getElementById('btnToggleHillshade');
+    btnToggleHillshade?.addEventListener('click', () => {
+      isHillshadeOn = !isHillshadeOn;
+      toggleHillshadeLayer(isHillshadeOn);
+      btnToggleHillshade.classList.toggle('active', isHillshadeOn);
+    });
+
+    // 8. Bind Contour Lines Toggle
+    let isContourOn = false;
+    const btnToggleContours = document.getElementById('btnToggleContours');
+    btnToggleContours?.addEventListener('click', () => {
+      isContourOn = !isContourOn;
+      toggleContourLayer(isContourOn);
+      btnToggleContours.classList.toggle('active', isContourOn);
     });
 
     // 9. Bind Zoom In / Out Controls

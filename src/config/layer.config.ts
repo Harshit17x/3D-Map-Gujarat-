@@ -53,3 +53,59 @@ export async function createPrimaryTerrainProvider(): Promise<Cesium.TerrainProv
 
   return new Cesium.EllipsoidTerrainProvider();
 }
+
+/**
+ * Geographic bounds of the clipped hillshade raster.
+ * Matches the study-area KUTCH_STUDY_AREA.bounds + ~10% buffer used
+ * by the DTM processing pipeline in scripts/convert-data.py.
+ */
+const HILLSHADE_BOUNDS = {
+  west:  69.823,
+  south: 23.845,
+  east:  69.877,
+  north: 23.895
+} as const;
+
+/**
+ * Analytical multidirectional hillshade overlay derived from Copernicus GLO-30 DTM.
+ * Served as a static single-tile PNG (public/assets/terrain/kutch_hillshade.png),
+ * pinned to the exact clipped raster extent.
+ *
+ * Distinct from the dynamic globe.enableLighting sun-shadow already in the scene —
+ * this is a 360° composite hillshade with exaggerated z-factor for extra contrast
+ * on the nearly-flat salt terrain, useful as an additive analytical overlay.
+ */
+export async function createHillshadeImageryProvider(): Promise<Cesium.ImageryProvider> {
+  return await Cesium.SingleTileImageryProvider.fromUrl(
+    '/assets/terrain/kutch_hillshade.png',
+    {
+      rectangle: Cesium.Rectangle.fromDegrees(
+        HILLSHADE_BOUNDS.west,
+        HILLSHADE_BOUNDS.south,
+        HILLSHADE_BOUNDS.east,
+        HILLSHADE_BOUNDS.north
+      )
+    }
+  );
+}
+
+/**
+ * 2m-interval contour lines derived from the Copernicus GLO-30 DTM,
+ * clipped to the study-area bounding box.
+ * Styled with thin, translucent sky-blue lines that are readable over
+ * both the hillshade and the satellite imagery basemap.
+ */
+export async function createContourDataSource(): Promise<Cesium.GeoJsonDataSource> {
+  const dataSource = await Cesium.GeoJsonDataSource.load(
+    '/assets/terrain/kutch_contours.geojson',
+    {
+      stroke: Cesium.Color.fromCssColorString('#7dd3fc').withAlpha(0.60),
+      strokeWidth: 1.2,
+      fill: Cesium.Color.TRANSPARENT,
+      markerSize: 0,
+      clampToGround: true
+    }
+  );
+  return dataSource;
+}
+
