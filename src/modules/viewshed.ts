@@ -28,7 +28,7 @@ export interface ViewshedConfig {
   observerHeightAboveGround: number;
   /** Maximum analysis radius in metres (default 2500 — covers ~20 km² study area) */
   maxRadiusMetres: number;
-  /** Number of radial bearings to sample (180 = 2° per sector for gapless coverage) */
+  /** Number of radial bearings to sample (360 = 1.0° per sector for sub-DEM resolution) */
   numBearings: number;
   /** Number of distance sample steps per radial bearing */
   samplesPerRay: number;
@@ -37,7 +37,7 @@ export interface ViewshedConfig {
 const DEFAULT_CONFIG: ViewshedConfig = {
   observerHeightAboveGround: 1.8,
   maxRadiusMetres: 2500,
-  numBearings: 180,     // 2.0° per sector — gapless continuous coverage
+  numBearings: 360,     // 1.0° per sector — resolves isolated diamond/square artifacts into contiguous regions
   samplesPerRay: 50,    // 50m radial resolution up to 2500m (was 25 × 100m)
 };
 
