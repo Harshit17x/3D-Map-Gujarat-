@@ -76,11 +76,13 @@ export const CAMERA_PRESETS = [
 ];
 
 /**
- * Altitude and zoom navigation constraints to keep user in the regional context
- * and avoid accidental disorienting fly-outs to outer space.
+ * Altitude and zoom navigation constraints.
+ * Allows smooth, unhindered zooming from ground-level inspection (15m)
+ * to wide regional and continental overviews (20,000 km) without getting stuck.
  */
 export const CAMERA_CONSTRAINTS = {
-  minZoomDistance: 200,    // 200 meters above ground
-  maxZoomDistance: 35000,  // 35 km max altitude
+  minZoomDistance: 15,       // 15 meters above ground
+  maxZoomDistance: 20000000, // 20,000 km max distance
   maximumScreenSpaceError: 2
 };
+

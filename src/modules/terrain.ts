@@ -228,29 +228,51 @@ export function toggleContourLayer(dataSource: Cesium.GeoJsonDataSource, show: b
 
 /**
  * Smoothly zooms the camera in toward the ground/target, respecting minimum altitude.
+ * Casts a pick ray from the viewport center to measure the actual target distance.
  */
 export function zoomIn(viewer: Cesium.Viewer, factor = 0.35): void {
   const camera = viewer.camera;
-  const carto = camera.positionCartographic;
-  const currentHeight = carto ? carto.height : 2500;
-  const minHeight = CAMERA_CONSTRAINTS.minZoomDistance;
+  const windowPosition = new Cesium.Cartesian2(viewer.container.clientWidth / 2, viewer.container.clientHeight / 2);
+  const ray = camera.getPickRay(windowPosition);
+  const target = ray ? (viewer.scene.globe.pick(ray, viewer.scene) || viewer.scene.camera.pickEllipsoid(windowPosition)) : null;
 
-  if (currentHeight <= minHeight + 10) return;
-  const zoomAmount = Math.max((currentHeight - minHeight) * factor, 30);
-  camera.zoomIn(zoomAmount);
+  let distance = 2500;
+  if (target) {
+    distance = Cesium.Cartesian3.distance(camera.position, target);
+  } else {
+    const carto = camera.positionCartographic;
+    distance = carto ? Math.max(carto.height, 30) : 2500;
+  }
+
+  const minDistance = CAMERA_CONSTRAINTS.minZoomDistance;
+  if (distance <= minDistance + 5) return;
+
+  const zoomAmount = Math.max(distance * factor, 15);
+  camera.zoomIn(Math.min(zoomAmount, distance - minDistance));
 }
 
 /**
  * Smoothly zooms the camera out toward the sky, respecting maximum altitude.
+ * Casts a pick ray from the viewport center to measure distance and scales out smoothly.
  */
 export function zoomOut(viewer: Cesium.Viewer, factor = 0.45): void {
   const camera = viewer.camera;
-  const carto = camera.positionCartographic;
-  const currentHeight = carto ? carto.height : 2500;
-  const maxHeight = CAMERA_CONSTRAINTS.maxZoomDistance;
+  const windowPosition = new Cesium.Cartesian2(viewer.container.clientWidth / 2, viewer.container.clientHeight / 2);
+  const ray = camera.getPickRay(windowPosition);
+  const target = ray ? (viewer.scene.globe.pick(ray, viewer.scene) || viewer.scene.camera.pickEllipsoid(windowPosition)) : null;
 
-  if (currentHeight >= maxHeight - 50) return;
-  const zoomAmount = Math.max(currentHeight * factor, 50);
+  let distance = 2500;
+  if (target) {
+    distance = Cesium.Cartesian3.distance(camera.position, target);
+  } else {
+    const carto = camera.positionCartographic;
+    distance = carto ? Math.max(carto.height, 30) : 2500;
+  }
+
+  const maxDistance = CAMERA_CONSTRAINTS.maxZoomDistance;
+  if (distance >= maxDistance - 1000) return;
+
+  const zoomAmount = Math.max(distance * factor, 50);
   camera.zoomOut(zoomAmount);
 }
 

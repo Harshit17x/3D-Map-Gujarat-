@@ -2,6 +2,7 @@ import * as Cesium from 'cesium';
 import { initializeCesiumViewer } from './modules/terrain.ts';
 import { CAMERA_PRESETS } from './config/camera.config.ts';
 import { CustomPointsManager, CustomPoint } from './modules/customPoints.ts';
+import { setupNavigationPad } from './modules/navigationPad.ts';
 
 async function bootstrapApp() {
   try {
@@ -15,8 +16,6 @@ async function bootstrapApp() {
       toggleContourLayer,
       zoomIn,
       zoomOut,
-      toggleOrbit,
-      tiltToHorizon,
       viewshedManager
     } = await initializeCesiumViewer('cesiumContainer');
 
@@ -86,21 +85,6 @@ async function bootstrapApp() {
               <span>Points (<span id="pointsBadgeCount">4</span>)</span>
             </button>
 
-            <!-- 3D Horizon Tilt Button -->
-            <button class="action-btn glass-panel" id="btnTiltHorizon" title="Tilt camera to 3D horizon perspective">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M2 12h20M4 17l8-5 8 5M4 7l8 5 8-5"/>
-              </svg>
-              <span>3D Horizon</span>
-            </button>
-
-            <!-- 3D Orbit Button -->
-            <button class="action-btn glass-panel" id="btnToggleOrbit" title="Start/Stop 360° cinematic 3D rotation">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-6.73"/>
-              </svg>
-              <span id="orbitLabel">3D Orbit</span>
-            </button>
 
             <!-- Camera Presets -->
             <button class="action-btn glass-panel" id="btnCyclePreset" title="Cycle through camera tour viewpoints">
@@ -275,36 +259,102 @@ async function bootstrapApp() {
         </div>
       </div>
 
-      <!-- Footer: Telemetry & Navigation Tips -->
+      <!-- Footer: Bottom-Left 3D Navigation Controls, Telemetry & Tips -->
       <footer class="hud-footer">
-        <!-- Spatial Telemetry Readout -->
-        <div class="glass-panel telemetry-card hud-interactive">
-          <div class="stat-item">
-            <span class="stat-label">Latitude</span>
-            <span class="stat-value" id="telemetryLat">23.8450° N</span>
+        <div class="hud-bottom-left hud-interactive">
+          <!-- 3D Directional View Controller (Replaces middle-click scroll drag) -->
+          <div class="glass-panel nav-dpad-card" id="navDpadCard">
+            <div class="dpad-card-header">
+              <div class="dpad-title-wrap">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                </svg>
+                <span class="dpad-title">3D View Control</span>
+              </div>
+              <div class="dpad-mode-toggle" id="dpadModeToggle">
+                <button class="dpad-mode-btn active" id="btnNavModeTilt" title="Tilt pitch up/down & rotate 360°">3D Tilt</button>
+                <button class="dpad-mode-btn" id="btnNavModePan" title="Pan map forward, backward, left, right">Pan</button>
+              </div>
+            </div>
+
+            <div class="dpad-body">
+              <div class="dpad-cross-container">
+                <!-- UP -->
+                <button class="dpad-btn dpad-up" id="btnDpadUp" title="Tilt Up towards horizon / Pan forward">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"/>
+                  </svg>
+                </button>
+
+                <!-- LEFT -->
+                <button class="dpad-btn dpad-left" id="btnDpadLeft" title="Rotate Left / Pan left">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+
+                <!-- CENTER (Reset North & 3D Tilt) -->
+                <button class="dpad-btn dpad-center" id="btnDpadCenter" title="Click to reset North (0°) & 3D perspective">
+                  <span class="dpad-compass-icon">🧭</span>
+                </button>
+
+                <!-- RIGHT -->
+                <button class="dpad-btn dpad-right" id="btnDpadRight" title="Rotate Right / Pan right">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+
+                <!-- DOWN -->
+                <button class="dpad-btn dpad-down" id="btnDpadDown" title="Tilt Down towards ground / Pan backward">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Quick Angles -->
+              <div class="dpad-quick-actions">
+                <button class="dpad-pill-btn" id="btnQuickTilt3D" title="Tilt into 3D oblique horizon view (-32°)">
+                  <span>📐 3D View</span>
+                </button>
+                <button class="dpad-pill-btn" id="btnQuickTopDown" title="Look straight down (90° Top-Down view)">
+                  <span>🗺️ Top Down</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-label">Longitude</span>
-            <span class="stat-value" id="telemetryLon">69.5200° E</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-label">Altitude</span>
-            <span class="stat-value" id="telemetryAlt">2,400 m</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-label">Heading</span>
-            <span class="stat-value" id="telemetryHeading">0° N</span>
+
+          <!-- Spatial Telemetry Readout -->
+          <div class="glass-panel telemetry-card hud-interactive">
+            <div class="stat-item">
+              <span class="stat-label">Latitude</span>
+              <span class="stat-value" id="telemetryLat">23.8450° N</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-label">Longitude</span>
+              <span class="stat-value" id="telemetryLon">69.5200° E</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-label">Altitude</span>
+              <span class="stat-value" id="telemetryAlt">2,400 m</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-label">Heading</span>
+              <span class="stat-value" id="telemetryHeading">0° N</span>
+            </div>
           </div>
         </div>
 
         <!-- Navigation Shortcut Hints -->
         <div class="glass-panel hint-pill">
+          <span><span class="key-badge">D-Pad / Arrows</span> 3D Tilt & Turn</span>
+          <span><span class="key-badge">Scroll / + -</span> Zoom</span>
           <span><span class="key-badge">Click Pin</span> Info</span>
-          <span><span class="key-badge">Right Click / Scroll</span> Zoom</span>
-          <span><span class="key-badge">Middle Drag</span> 3D Tilt</span>
         </div>
       </footer>
 
@@ -383,25 +433,14 @@ async function bootstrapApp() {
       setLightingPreset(nextMode);
     });
 
-    // 7. Bind 3D Horizon Tilt & 3D Orbit
-    const btnTiltHorizon = document.getElementById('btnTiltHorizon');
-    btnTiltHorizon?.addEventListener('click', () => {
-      tiltToHorizon();
-    });
-
-    const btnToggleOrbit = document.getElementById('btnToggleOrbit');
-    const orbitLabel = document.getElementById('orbitLabel');
-    btnToggleOrbit?.addEventListener('click', () => {
-      const active = toggleOrbit();
-      btnToggleOrbit.classList.toggle('active', active);
-      if (orbitLabel) orbitLabel.textContent = active ? 'Stop Orbit' : '3D Orbit';
-    });
+    // 7. Initialize Bottom-Left 3D Navigation D-Pad & View Controller
+    setupNavigationPad(viewer);
 
     // 8. Bind Reset View Button
     const btnResetView = document.getElementById('btnResetView');
     btnResetView?.addEventListener('click', () => {
       currentPresetIndex = 0;
-      if (presetLabel) presetLabel.textContent = 'View: Horizon';
+      if (presetLabel) presetLabel.textContent = 'View: Tour';
       flyToStudyArea('default');
     });
 

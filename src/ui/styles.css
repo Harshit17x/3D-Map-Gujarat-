@@ -219,6 +219,207 @@ html, body {
 }
 
 /* ==========================================================================
+   Bottom-Left 3D Navigation D-Pad & View Controller
+   ========================================================================== */
+.hud-bottom-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.nav-dpad-card {
+  padding: 0.75rem 0.85rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  user-select: none;
+  -webkit-user-select: none;
+  min-width: 175px;
+}
+
+.dpad-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dpad-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dpad-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #e2e8f0;
+}
+
+.dpad-mode-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dpad-mode-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dpad-mode-btn:hover {
+  color: #f8fafc;
+}
+
+.dpad-mode-btn.active {
+  background: #38bdf8;
+  color: #0b0f19;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.dpad-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dpad-cross-container {
+  display: grid;
+  grid-template-columns: repeat(3, 34px);
+  grid-template-rows: repeat(3, 34px);
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.dpad-btn {
+  width: 34px;
+  height: 34px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  touch-action: none;
+}
+
+.dpad-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.dpad-btn:active {
+  transform: scale(0.92);
+  background: rgba(56, 189, 248, 0.35);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+.dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.dpad-center {
+  grid-column: 2;
+  grid-row: 2;
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(56, 189, 248, 0.35);
+  font-size: 0.85rem;
+}
+
+.dpad-center:hover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.25);
+}
+
+.dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.dpad-compass-icon {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.dpad-center:hover .dpad-compass-icon {
+  transform: rotate(20deg);
+}
+
+.dpad-quick-actions {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.dpad-pill-btn {
+  flex: 1;
+  padding: 0.32rem 0.5rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.dpad-pill-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+.dpad-pill-btn:active {
+  transform: translateY(1px);
+}
+
+/* ==========================================================================
    Bottom Telemetry & Spatial Stats
    ========================================================================== */
 .hud-footer {
