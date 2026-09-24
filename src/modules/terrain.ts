@@ -15,7 +15,7 @@ import { ViewshedManager } from './viewshed.ts';
 
 export interface ViewerSetupResult {
   viewer: Cesium.Viewer;
-  flyToStudyArea: (presetId?: string) => void;
+  flyToStudyArea: (presetId?: string, duration?: number) => void;
   setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => void;
   setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => void;
   toggleHillshadeLayer: (show: boolean) => void;
@@ -106,7 +106,7 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
 
   return {
     viewer,
-    flyToStudyArea: (presetId?: string) => flyToStudyArea(viewer, presetId),
+    flyToStudyArea: (presetId?: string, duration?: number) => flyToStudyArea(viewer, presetId, duration),
     setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => setSceneMode(viewer, mode),
     setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => setLightingPreset(viewer, preset),
     toggleHillshadeLayer: (show: boolean) => toggleHillshadeLayer(hillshadeLayer, show),
@@ -163,31 +163,74 @@ export function setLightingPreset(viewer: Cesium.Viewer, preset: 'golden' | 'noo
 /**
  * Smoothly fly camera to study area or preset viewpoint.
  */
-export function flyToStudyArea(viewer: Cesium.Viewer, presetId = 'default'): void {
+export function flyToStudyArea(viewer: Cesium.Viewer, presetId = 'default', duration = DEFAULT_CAMERA_VIEW.duration): void {
   const preset = CAMERA_PRESETS.find(p => p.id === presetId) || CAMERA_PRESETS[0];
 
   viewer.camera.flyTo({
     destination: preset.destination,
     orientation: preset.orientation,
-    duration: DEFAULT_CAMERA_VIEW.duration,
+    duration: duration,
     easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT
   });
 }
 
+let activeMorphListenerRemover: Cesium.Event.RemoveCallback | null = null;
+
 /**
  * Smoothly transition between 3D, 2.5D Columbus View, and 2D Planar modes.
+ * Uses Cesium's morph transitioner (morphTo3D, morphToColumbusView, morphTo2D)
+ * and ensures camera re-focuses on the Kutch study area without getting stuck.
  */
 export function setSceneMode(viewer: Cesium.Viewer, mode: '3D' | 'COLUMBUS' | '2D'): void {
-  switch (mode) {
-    case '3D':
-      viewer.scene.mode = Cesium.SceneMode.SCENE3D;
-      break;
-    case 'COLUMBUS':
-      viewer.scene.mode = Cesium.SceneMode.COLUMBUS_VIEW;
-      break;
-    case '2D':
-      viewer.scene.mode = Cesium.SceneMode.SCENE2D;
-      break;
+  // If scene is currently in the middle of a morph, complete it cleanly first
+  if (viewer.scene.mode === Cesium.SceneMode.MORPHING) {
+    viewer.scene.completeMorph();
+  }
+
+  // Cancel any previously pending post-morph flyTo callback
+  if (activeMorphListenerRemover) {
+    activeMorphListenerRemover();
+    activeMorphListenerRemover = null;
+  }
+
+  const currentMode = viewer.scene.mode;
+
+  if (mode === '3D') {
+    if (currentMode === Cesium.SceneMode.SCENE3D) return;
+
+    viewer.scene.morphTo3D(1.0);
+
+    activeMorphListenerRemover = viewer.scene.morphComplete.addEventListener(() => {
+      if (activeMorphListenerRemover) {
+        activeMorphListenerRemover();
+        activeMorphListenerRemover = null;
+      }
+      flyToStudyArea(viewer, 'default', 1.2);
+    });
+  } else if (mode === 'COLUMBUS') {
+    if (currentMode === Cesium.SceneMode.COLUMBUS_VIEW) return;
+
+    viewer.scene.morphToColumbusView(1.0);
+
+    activeMorphListenerRemover = viewer.scene.morphComplete.addEventListener(() => {
+      if (activeMorphListenerRemover) {
+        activeMorphListenerRemover();
+        activeMorphListenerRemover = null;
+      }
+      flyToStudyArea(viewer, 'default', 1.2);
+    });
+  } else if (mode === '2D') {
+    if (currentMode === Cesium.SceneMode.SCENE2D) return;
+
+    viewer.scene.morphTo2D(1.0);
+
+    activeMorphListenerRemover = viewer.scene.morphComplete.addEventListener(() => {
+      if (activeMorphListenerRemover) {
+        activeMorphListenerRemover();
+        activeMorphListenerRemover = null;
+      }
+      flyToStudyArea(viewer, 'ortho', 1.2);
+    });
   }
 }
 

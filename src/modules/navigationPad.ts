@@ -43,6 +43,15 @@ export function adjustTiltAndHeading(
   deltaHeadingRad: number
 ): void {
   const camera = viewer.camera;
+
+  // In 2D planar mode, pitch is locked to nadir (-90°); allow twist rotation
+  if (viewer.scene.mode === Cesium.SceneMode.SCENE2D) {
+    if (Math.abs(deltaHeadingRad) > 0.0001) {
+      camera.twistRight(-deltaHeadingRad);
+    }
+    return;
+  }
+
   const currentHeading = camera.heading;
   const currentPitch = camera.pitch;
 
@@ -77,6 +86,24 @@ export function panCamera(
   continuous = false
 ): void {
   const camera = viewer.camera;
+
+  // 2D planar mode panning
+  if (viewer.scene.mode === Cesium.SceneMode.SCENE2D) {
+    const frustum = camera.frustum as any;
+    let dist = 500;
+    if (frustum && typeof frustum.right === 'number' && typeof frustum.left === 'number') {
+      const w = Math.abs(frustum.right - frustum.left);
+      dist = Math.max(w * (continuous ? 0.02 : 0.08), 20);
+    }
+    switch (direction) {
+      case 'up':    camera.moveUp(dist); break;
+      case 'down':  camera.moveDown(dist); break;
+      case 'left':  camera.moveLeft(dist); break;
+      case 'right': camera.moveRight(dist); break;
+    }
+    return;
+  }
+
   const carto = camera.positionCartographic;
   const height = carto ? carto.height : 2500;
 
@@ -270,7 +297,13 @@ export function setupNavigationPad(viewer: Cesium.Viewer): NavigationPadControls
 
   // Quick 3D Perspective Button
   const set3DOblique = () => {
-    const currentHeading = viewer.camera.heading;
+    if (viewer.scene.mode === Cesium.SceneMode.SCENE2D) {
+      viewer.scene.morphTo3D(1.0);
+      return;
+    }
+    const currentHeading = typeof viewer.camera.heading === 'number' && !isNaN(viewer.camera.heading)
+      ? viewer.camera.heading
+      : 0;
     viewer.camera.flyTo({
       destination: viewer.camera.position,
       orientation: {
@@ -286,7 +319,9 @@ export function setupNavigationPad(viewer: Cesium.Viewer): NavigationPadControls
 
   // Quick Top-Down (Nadir) Button
   const setTopDown = () => {
-    const currentHeading = viewer.camera.heading;
+    const currentHeading = typeof viewer.camera.heading === 'number' && !isNaN(viewer.camera.heading)
+      ? viewer.camera.heading
+      : 0;
     viewer.camera.flyTo({
       destination: viewer.camera.position,
       orientation: {

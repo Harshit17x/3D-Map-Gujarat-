@@ -19,6 +19,8 @@ async function bootstrapApp() {
       viewshedManager
     } = await initializeCesiumViewer('cesiumContainer');
 
+    (window as any).viewer = viewer;
+
     // 2. Initialize 3D Custom Points System
     const pointsManager = new CustomPointsManager(viewer);
 
@@ -603,13 +605,28 @@ async function bootstrapApp() {
     // 5. VIEW MODES (3D Globe / 2.5D Columbus / 2D Map)
     // =========================================================================
     const modeButtons = document.querySelectorAll<HTMLButtonElement>('#viewModeGroup button');
+
+    const updateActiveModeButton = (mode: Cesium.SceneMode) => {
+      let targetAttr = '3D';
+      if (mode === Cesium.SceneMode.SCENE2D) targetAttr = '2D';
+      else if (mode === Cesium.SceneMode.COLUMBUS_VIEW) targetAttr = 'COLUMBUS';
+
+      modeButtons.forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-mode') === targetAttr);
+      });
+    };
+
     modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode') as '3D' | 'COLUMBUS' | '2D';
         modeButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const mode = btn.getAttribute('data-mode') as '3D' | 'COLUMBUS' | '2D';
         setSceneMode(mode);
       });
+    });
+
+    viewer.scene.morphComplete.addEventListener((_transitioner, _prev, currentMode) => {
+      updateActiveModeButton(currentMode);
     });
 
     // =========================================================================
@@ -1087,24 +1104,33 @@ async function bootstrapApp() {
     const headingEl = document.getElementById('telemetryHeading');
 
     viewer.camera.changed.addEventListener(() => {
-      const carto = viewer.camera.positionCartographic;
-      if (!carto) return;
+      try {
+        const carto = viewer.camera.positionCartographic;
+        if (!carto || typeof carto.latitude !== 'number' || typeof carto.longitude !== 'number') return;
+        if (isNaN(carto.latitude) || isNaN(carto.longitude)) return;
 
-      const lat = Cesium.Math.toDegrees(carto.latitude);
-      const lon = Cesium.Math.toDegrees(carto.longitude);
-      const alt = carto.height;
-      const heading = Cesium.Math.toDegrees(viewer.camera.heading);
+        const lat = Cesium.Math.toDegrees(carto.latitude);
+        const lon = Cesium.Math.toDegrees(carto.longitude);
+        const alt = typeof carto.height === 'number' && !isNaN(carto.height) ? carto.height : 0;
 
-      if (latEl) latEl.textContent = `${lat.toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`;
-      if (lonEl) lonEl.textContent = `${lon.toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;
-      if (altEl) {
-        altEl.textContent = alt >= 1000
-          ? `${(alt / 1000).toFixed(1)} km`
-          : `${Math.round(alt)} m`;
-      }
-      if (headingEl) {
-        const compassHeading = Math.round((heading + 360) % 360);
-        headingEl.textContent = `${compassHeading}°`;
+        const rawHeading = typeof viewer.camera.heading === 'number' && !isNaN(viewer.camera.heading)
+          ? viewer.camera.heading
+          : 0;
+        const heading = Cesium.Math.toDegrees(rawHeading);
+
+        if (latEl) latEl.textContent = `${lat.toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`;
+        if (lonEl) lonEl.textContent = `${lon.toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;
+        if (altEl) {
+          altEl.textContent = alt >= 1000
+            ? `${(alt / 1000).toFixed(1)} km`
+            : `${Math.round(alt)} m`;
+        }
+        if (headingEl) {
+          const compassHeading = Math.round((heading + 360) % 360);
+          headingEl.textContent = `${compassHeading}°`;
+        }
+      } catch (err) {
+        // Guard against any telemetry calculation errors during mode morph transitions
       }
     });
 
