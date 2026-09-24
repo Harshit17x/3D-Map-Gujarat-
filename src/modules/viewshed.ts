@@ -38,10 +38,25 @@ const DEFAULT_CONFIG: ViewshedConfig = {
   observerHeightAboveGround: 1.8,
   maxRadiusMetres: 2500,
   numBearings: 180,     // 2.0° per sector — gapless continuous coverage
-  samplesPerRay: 25,    // 100m radial resolution up to 2500m
+  samplesPerRay: 50,    // 50m radial resolution up to 2500m (was 25 × 100m)
 };
 
+/**
+ * Minimum starting offset along each ray in metres.
+ * Starting at 20 m instead of 0 avoids DEM bi-linear interpolation noise right
+ * at the observer pixel, which can produce a falsely large first-sample angle
+ * that silently blocks visibility for the rest of that entire ray.
+ * The first sample (s === 0) is also flagged always-visible as a second guard.
+ */
+const MIN_SAMPLE_OFFSET_M = 20;
+
 const DATA_SOURCE_NAME = 'viewshed-analysis';
+
+// Known flat salt-flat reference point (< 2 m relief within 500 m)
+const FLAT_TEST_LAT = 23.870;
+const FLAT_TEST_LON = 69.850;
+const FLAT_TEST_RADIUS_M = 500;
+const FLAT_TEST_MIN_VIS_FRACTION = 0.80;
 
 export class ViewshedManager {
   private viewer: Cesium.Viewer;
@@ -129,6 +144,52 @@ export class ViewshedManager {
     this.viewer.dataSources.remove(this.dataSource, true);
   }
 
+  /**
+   * Self-test: cast coarse rays from a known flat area and assert ≥ 80 % visible.
+   * Run this in the browser console after any algorithm change:
+   *   window.__viewshedManager.runFlatAreaSelfTest()
+   */
+  async runFlatAreaSelfTest(): Promise<boolean> {
+    console.log('[Viewshed SelfTest] Starting flat-area visibility check …');
+    const oc = Cesium.Cartographic.fromDegrees(FLAT_TEST_LON, FLAT_TEST_LAT);
+    await this.sampleTerrainHeight([oc]);
+    const obsTerrainH = oc.height ?? 0;
+    const obsEyeH    = obsTerrainH + this.config.observerHeightAboveGround;
+
+    const NB = 36, NS = 10;
+    let total = 0, visible = 0;
+    const bStep = (2 * Math.PI) / NB;
+    for (let b = 0; b < NB; b++) {
+      const bRad = b * bStep;
+      const carts: Cesium.Cartographic[] = [];
+      const dists: number[] = [];
+      for (let s = 1; s <= NS; s++) {
+        const dist = MIN_SAMPLE_OFFSET_M + ((FLAT_TEST_RADIUS_M - MIN_SAMPLE_OFFSET_M) / NS) * s;
+        const pt = this.destinationPoint(FLAT_TEST_LAT, FLAT_TEST_LON, bRad, dist);
+        carts.push(Cesium.Cartographic.fromDegrees(pt.lon, pt.lat));
+        dists.push(dist);
+      }
+      await this.sampleTerrainHeight(carts);
+      let maxAngle = -Infinity;
+      for (let s = 0; s < carts.length; s++) {
+        const diff  = (carts[s].height ?? 0) - obsEyeH;
+        const angle = Math.atan2(diff, dists[s]);
+        const vis   = (s === 0) || (angle >= maxAngle);
+        if (vis) visible++;
+        total++;
+        if (angle > maxAngle) maxAngle = angle;
+      }
+    }
+    const frac = visible / total;
+    const pass = frac >= FLAT_TEST_MIN_VIS_FRACTION;
+    console.log(
+      `[Viewshed SelfTest] ${pass ? '✓ PASS' : '✗ FAIL'} — ` +
+      `${(frac * 100).toFixed(1)} % visible (≥ ${(FLAT_TEST_MIN_VIS_FRACTION * 100).toFixed(0)} % required). ` +
+      `Observer: ${obsTerrainH.toFixed(1)} m terrain / ${obsEyeH.toFixed(1)} m eye.`
+    );
+    return pass;
+  }
+
   // ─── Internal computation ─────────────────────────────────────────────────
 
   private async recompute(): Promise<void> {
@@ -175,7 +236,8 @@ export class ViewshedManager {
         rayPoints.push({ lat, lon });
 
         for (let s = 1; s <= samplesPerRay; s++) {
-          const dist = (s / samplesPerRay) * maxRadiusMetres;
+          // Start samples at MIN_SAMPLE_OFFSET_M to avoid DEM noise at the observer pixel
+          const dist = MIN_SAMPLE_OFFSET_M + ((maxRadiusMetres - MIN_SAMPLE_OFFSET_M) / samplesPerRay) * s;
           const pt = this.destinationPoint(lat, lon, bearingRad, dist);
           rayPoints.push(pt);
           allSampleCartographics.push(Cesium.Cartographic.fromDegrees(pt.lon, pt.lat));
@@ -206,7 +268,8 @@ export class ViewshedManager {
         let maxHorizonAngle = -Infinity;
 
         for (let s = 0; s < samplesPerRay; s++) {
-          const sampleDist = ((s + 1) / samplesPerRay) * maxRadiusMetres;
+          // Mirror the MIN_SAMPLE_OFFSET_M offset used in grid point creation
+          const sampleDist = MIN_SAMPLE_OFFSET_M + ((maxRadiusMetres - MIN_SAMPLE_OFFSET_M) / samplesPerRay) * (s + 1);
           const sampleTerrainH = heights[b][s + 1];
 
           // Elevation angle from observer eye to terrain sample
