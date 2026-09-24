@@ -11,6 +11,7 @@ import {
   createHillshadeImageryProvider,
   createContourDataSource
 } from '../config/layer.config.ts';
+import { ViewshedManager } from './viewshed.ts';
 
 export interface ViewerSetupResult {
   viewer: Cesium.Viewer;
@@ -23,6 +24,8 @@ export interface ViewerSetupResult {
   zoomOut: (factor?: number) => void;
   toggleOrbit: () => boolean;
   tiltToHorizon: () => void;
+  /** Viewshed analysis manager — set observer, enable/disable analysis */ 
+  viewshedManager: ViewshedManager;
 }
 
 /**
@@ -92,6 +95,10 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
   await viewer.dataSources.add(contourDataSource);
   contourDataSource.show = false;
 
+  // Viewshed analysis — radial raycast from an observer point.
+  // Starts hidden; enabled when user places an observer via HUD button.
+  const viewshedManager = new ViewshedManager(viewer);
+
   // ─────────────────────────────────────────────────────────────────────────
 
   // Fly directly to the default oblique camera view on load
@@ -107,7 +114,8 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
     zoomIn: (factor?: number) => zoomIn(viewer, factor),
     zoomOut: (factor?: number) => zoomOut(viewer, factor),
     toggleOrbit: () => toggleOrbitMode(viewer),
-    tiltToHorizon: () => tiltToHorizon(viewer)
+    tiltToHorizon: () => tiltToHorizon(viewer),
+    viewshedManager
   };
 }
 

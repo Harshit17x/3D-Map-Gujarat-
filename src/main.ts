@@ -16,7 +16,8 @@ async function bootstrapApp() {
       zoomIn,
       zoomOut,
       toggleOrbit,
-      tiltToHorizon
+      tiltToHorizon,
+      viewshedManager
     } = await initializeCesiumViewer('cesiumContainer');
 
     // 2. Initialize 3D Custom Points System
@@ -32,6 +33,13 @@ async function bootstrapApp() {
         <div class="banner-pulse"></div>
         <span class="banner-text">Click anywhere on the 3D map to drop your 3D pin</span>
         <button class="banner-cancel-btn" id="btnCancelPlacement">Cancel</button>
+      </div>
+
+      <!-- Viewshed Placement Banner (Shown when clicking map to place observer) -->
+      <div class="placement-banner" id="viewshedBanner" style="display: none;">
+        <div class="banner-pulse" style="background: #22c55e;"></div>
+        <span class="banner-text">Click anywhere on the 3D terrain to place the viewshed observer</span>
+        <button class="banner-cancel-btn" id="btnCancelViewshed">Cancel</button>
       </div>
 
       <!-- Header: Title & Info -->
@@ -133,6 +141,18 @@ async function bootstrapApp() {
                 <path d="M3 17 Q7 13 12 17 Q17 21 21 17" opacity="0.5"></path>
               </svg>
               <span>Contours</span>
+            </button>
+
+            <!-- Viewshed Analysis Toggle -->
+            <button class="action-btn glass-panel" id="btnToggleViewshed" title="Viewshed Analysis: click terrain to place observer, see green=visible / red=occluded">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="3" x2="12" y2="1" stroke-width="1.5" opacity="0.7"/>
+                <line x1="20.5" y1="7.5" x2="22" y2="6" stroke-width="1.5" opacity="0.7"/>
+                <line x1="20.5" y1="16.5" x2="22" y2="18" stroke-width="1.5" opacity="0.7"/>
+              </svg>
+              <span id="viewshedLabel">Viewshed</span>
             </button>
 
             <!-- Reset to Dhordo Study Area -->
@@ -280,6 +300,43 @@ async function bootstrapApp() {
           <span><span class="key-badge">Middle Drag</span> 3D Tilt</span>
         </div>
       </footer>
+
+      <!-- Viewshed Observer Height Modal -->
+      <div class="modal-overlay" id="viewshedModalOverlay" style="display: none;">
+        <div class="glass-panel modal-dialog" id="viewshedModal">
+          <div class="modal-header">
+            <h3 class="modal-title">
+              <span>&#x1F441;</span> Viewshed Analysis
+            </h3>
+            <button class="modal-close-btn" id="btnCloseViewshedModal">&times;</button>
+          </div>
+
+          <p style="color:#94a3b8; font-size:0.8rem; margin:0 0 1rem 0; line-height:1.5;">
+            Observer placed. Computing line-of-sight analysis&hellip;<br/>
+            <strong style="color:#22c55e;">Green</strong> = visible terrain &nbsp;&bull;&nbsp;
+            <strong style="color:#ef4444;">Red</strong> = occluded terrain
+          </p>
+
+          <div class="form-field">
+            <label class="form-label">Observer Height Above Ground</label>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="range" id="viewshedHeightSlider" min="1" max="30" step="0.5" value="1.8"
+                style="flex:1; accent-color:#22c55e;" />
+              <span id="viewshedHeightValue" style="color:#f8fafc; font-size:0.85rem; min-width:3rem;">1.8 m</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:0.35rem;">
+              <button type="button" class="chip-btn" id="vsPresetPerson" style="font-size:0.7rem;">Person (1.8m)</button>
+              <button type="button" class="chip-btn" id="vsPresetTower" style="font-size:0.7rem;">Tower (10m)</button>
+              <button type="button" class="chip-btn" id="vsPresetMast" style="font-size:0.7rem;">Mast (25m)</button>
+            </div>
+          </div>
+
+          <div class="modal-actions" style="margin-top:0.75rem;">
+            <button type="button" class="btn-secondary" id="btnClearViewshed">Clear Analysis</button>
+            <button type="button" class="btn-primary" id="btnRecomputeViewshed" style="background:rgba(34,197,94,0.2); border-color:rgba(34,197,94,0.5); color:#22c55e;">Recompute</button>
+          </div>
+        </div>
+      </div>
     `;
 
     // 4. Bind View Mode Buttons (3D / Columbus / 2D)
@@ -358,6 +415,143 @@ async function bootstrapApp() {
       toggleContourLayer(isContourOn);
       btnToggleContours.classList.toggle('active', isContourOn);
     });
+
+    // ── Viewshed Analysis ────────────────────────────────────────────────────
+    //
+    // Interaction flow (mirrors btnAddPoint pattern):
+    //   1. First click on btnToggleViewshed → enter placement mode (show banner).
+    //   2. User clicks terrain → setObserver(lat,lon) + enable() → computation.
+    //   3. Viewshed modal opens so user can adjust observer height / recompute.
+    //   4. Second click on btnToggleViewshed (while active) → disable + clear.
+    //
+    let isViewshedPlacementMode = false;
+    const btnToggleViewshed  = document.getElementById('btnToggleViewshed');
+    const viewshedBanner     = document.getElementById('viewshedBanner');
+    const btnCancelViewshed  = document.getElementById('btnCancelViewshed');
+    const viewshedLabel      = document.getElementById('viewshedLabel');
+    const viewshedModal      = document.getElementById('viewshedModalOverlay');
+    const btnCloseVsModal    = document.getElementById('btnCloseViewshedModal');
+    const btnClearViewshed   = document.getElementById('btnClearViewshed');
+    const btnRecompute       = document.getElementById('btnRecomputeViewshed');
+    const vsHeightSlider     = document.getElementById('viewshedHeightSlider') as HTMLInputElement;
+    const vsHeightValue      = document.getElementById('viewshedHeightValue');
+
+    // A dedicated ScreenSpaceEventHandler for viewshed observer placement
+    const viewshedHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    let vsHandlerActive = false;
+
+    const enterViewshedPlacement = () => {
+      isViewshedPlacementMode = true;
+      if (viewshedBanner) viewshedBanner.style.display = 'flex';
+      if (btnToggleViewshed) btnToggleViewshed.classList.add('active-mode');
+
+      if (!vsHandlerActive) {
+        vsHandlerActive = true;
+        viewshedHandler.setInputAction(async (click: { position: Cesium.Cartesian2 }) => {
+          if (!isViewshedPlacementMode) return;
+
+          // Ray-pick against terrain globe
+          const ray = viewer.camera.getPickRay(click.position);
+          if (!ray) return;
+
+          let cartesian: Cesium.Cartesian3 | undefined;
+          if (viewer.scene.globe) {
+            cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+          }
+          if (!cartesian) {
+            cartesian = viewer.camera.pickEllipsoid(click.position, viewer.scene.globe.ellipsoid);
+          }
+          if (!cartesian) return;
+
+          const carto = Cesium.Cartographic.fromCartesian(cartesian);
+          const lat = Cesium.Math.toDegrees(carto.latitude);
+          const lon = Cesium.Math.toDegrees(carto.longitude);
+
+          // Exit placement mode
+          isViewshedPlacementMode = false;
+          if (viewshedBanner) viewshedBanner.style.display = 'none';
+          if (btnToggleViewshed) btnToggleViewshed.classList.remove('active-mode');
+          if (btnToggleViewshed) btnToggleViewshed.classList.add('active');
+          if (viewshedLabel) viewshedLabel.textContent = 'Computing…';
+
+          // Run the analysis
+          await viewshedManager.setObserver(lat, lon);
+          await viewshedManager.enable();
+
+          if (viewshedLabel) viewshedLabel.textContent = 'Viewshed On';
+          if (viewshedModal) viewshedModal.style.display = 'flex';
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }
+    };
+
+    const exitViewshed = () => {
+      isViewshedPlacementMode = false;
+      viewshedManager.disable();
+      if (viewshedBanner)    viewshedBanner.style.display = 'none';
+      if (viewshedModal)     viewshedModal.style.display  = 'none';
+      if (btnToggleViewshed) btnToggleViewshed.classList.remove('active', 'active-mode');
+      if (viewshedLabel)     viewshedLabel.textContent = 'Viewshed';
+    };
+
+    btnToggleViewshed?.addEventListener('click', () => {
+      if (viewshedManager.isEnabled()) {
+        exitViewshed();
+      } else if (isViewshedPlacementMode) {
+        // Cancel mid-placement
+        isViewshedPlacementMode = false;
+        if (viewshedBanner) viewshedBanner.style.display = 'none';
+        btnToggleViewshed.classList.remove('active-mode');
+      } else {
+        enterViewshedPlacement();
+      }
+    });
+
+    btnCancelViewshed?.addEventListener('click', () => {
+      isViewshedPlacementMode = false;
+      if (viewshedBanner) viewshedBanner.style.display = 'none';
+      btnToggleViewshed?.classList.remove('active-mode');
+    });
+
+    btnCloseVsModal?.addEventListener('click', () => {
+      if (viewshedModal) viewshedModal.style.display = 'none';
+    });
+
+    btnClearViewshed?.addEventListener('click', () => {
+      exitViewshed();
+    });
+
+    btnRecompute?.addEventListener('click', async () => {
+      if (viewshedLabel) viewshedLabel.textContent = 'Computing…';
+      await viewshedManager.enable();
+      if (viewshedLabel) viewshedLabel.textContent = 'Viewshed On';
+    });
+
+    // Observer height slider
+    vsHeightSlider?.addEventListener('input', () => {
+      const h = parseFloat(vsHeightSlider.value);
+      if (vsHeightValue) vsHeightValue.textContent = `${h.toFixed(1)} m`;
+    });
+    vsHeightSlider?.addEventListener('change', async () => {
+      const h = parseFloat(vsHeightSlider.value);
+      if (viewshedLabel) viewshedLabel.textContent = 'Computing…';
+      await viewshedManager.updateObserverHeight(h);
+      if (viewshedLabel) viewshedLabel.textContent = 'Viewshed On';
+    });
+
+    // Height preset buttons
+    const setVsHeight = async (h: number) => {
+      if (vsHeightSlider) vsHeightSlider.value = h.toString();
+      if (vsHeightValue)  vsHeightValue.textContent = `${h.toFixed(1)} m`;
+      if (viewshedLabel)  viewshedLabel.textContent = 'Computing…';
+      await viewshedManager.updateObserverHeight(h);
+      if (viewshedLabel)  viewshedLabel.textContent = 'Viewshed On';
+    };
+    document.getElementById('vsPresetPerson')?.addEventListener('click', () => setVsHeight(1.8));
+    document.getElementById('vsPresetTower')?.addEventListener('click',  () => setVsHeight(10));
+    document.getElementById('vsPresetMast')?.addEventListener('click',   () => setVsHeight(25));
+
+    // Escape key cancels viewshed placement mode too
+    // (inserted into the existing keydown handler below by extending it)
 
     // 9. Bind Zoom In / Out Controls
     const btnZoomIn = document.getElementById('btnZoomIn');
@@ -566,6 +760,15 @@ async function bootstrapApp() {
         closeModal();
         if (pointDetailCard) pointDetailCard.style.display = 'none';
         if (pointsDrawer) pointsDrawer.style.display = 'none';
+        // Cancel viewshed placement / close viewshed modal
+        if (isViewshedPlacementMode) {
+          isViewshedPlacementMode = false;
+          const _vsb = document.getElementById('viewshedBanner');
+          if (_vsb) _vsb.style.display = 'none';
+          btnToggleViewshed?.classList.remove('active-mode');
+        }
+        const _vsm = document.getElementById('viewshedModalOverlay');
+        if (_vsm) _vsm.style.display = 'none';
       } else if (e.key === '+' || e.key === '=') {
         e.preventDefault();
         zoomIn();
