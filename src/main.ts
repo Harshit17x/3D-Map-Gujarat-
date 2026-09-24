@@ -155,6 +155,13 @@ async function bootstrapApp() {
               <span id="viewshedLabel">Viewshed</span>
             </button>
 
+            <!-- Viewshed HUD Legend -->
+            <div class="viewshed-hud-legend" id="viewshedHudLegend" style="display: none;" title="Viewshed Legend: Green = Visible, Red = Blocked">
+              <span class="vs-legend-title">Viewshed:</span>
+              <span class="vs-legend-item"><span class="vs-legend-swatch vs-visible"></span> Visible</span>
+              <span class="vs-legend-item"><span class="vs-legend-swatch vs-blocked"></span> Blocked</span>
+            </div>
+
             <!-- Reset to Dhordo Study Area -->
             <button class="action-btn glass-panel" id="btnResetView" title="Re-center camera on the White Desert">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -480,15 +487,19 @@ async function bootstrapApp() {
 
           if (viewshedLabel) viewshedLabel.textContent = 'Viewshed On';
           if (viewshedModal) viewshedModal.style.display = 'flex';
+          const vsHudLegend = document.getElementById('viewshedHudLegend');
+          if (vsHudLegend) vsHudLegend.style.display = 'inline-flex';
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       }
     };
 
     const exitViewshed = () => {
       isViewshedPlacementMode = false;
-      viewshedManager.disable();
+      viewshedManager.clear();
       if (viewshedBanner)    viewshedBanner.style.display = 'none';
       if (viewshedModal)     viewshedModal.style.display  = 'none';
+      const vsHudLegend = document.getElementById('viewshedHudLegend');
+      if (vsHudLegend)       vsHudLegend.style.display    = 'none';
       if (btnToggleViewshed) btnToggleViewshed.classList.remove('active', 'active-mode');
       if (viewshedLabel)     viewshedLabel.textContent = 'Viewshed';
     };
@@ -769,6 +780,10 @@ async function bootstrapApp() {
         }
         const _vsm = document.getElementById('viewshedModalOverlay');
         if (_vsm) _vsm.style.display = 'none';
+        if (!viewshedManager.isEnabled()) {
+          const _vsl = document.getElementById('viewshedHudLegend');
+          if (_vsl) _vsl.style.display = 'none';
+        }
       } else if (e.key === '+' || e.key === '=') {
         e.preventDefault();
         zoomIn();
