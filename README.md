@@ -6,73 +6,97 @@
 [![Copernicus DEM](https://img.shields.io/badge/Data-Copernicus%20GLO--30-008080.svg)](https://spacedata.copernicus.eu/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An interactive, high-performance **3D Digital Terrain Map** of the **White Rann of Kutch (Gujarat, India)** built with **CesiumJS**, **Vite**, and **TypeScript**.
+An interactive, high-performance **3D Digital Terrain & Elevation Map** of the **White Rann of Kutch (Gujarat, India)** built with **CesiumJS**, **Vite**, and **TypeScript**.
 
-The application visualizes high-resolution satellite imagery integrated with a **Copernicus GLO-30 Digital Terrain Model (DTM)**, multi-directional hillshading, 2m-interval elevation contour lines, real-time dynamic solar illumination, and a full-featured **3D Custom Points Management System**.
+The application visualizes high-resolution satellite imagery integrated with a **Copernicus GLO-30 Digital Terrain Model (DTM)**, multi-directional hillshading, 2m-interval elevation contour lines, real-time dynamic solar illumination, line-of-sight **Viewshed Analysis**, an on-screen **3D Navigation D-Pad**, and a full-featured **3D Custom Points Management System**.
 
 ---
 
-## Key Features
+## 🌟 Key Features
 
-### 1. 3D Digital Terrain and High-Resolution Satellite Imagery
-- **Terrain Relief & Globe**: Powered by CesiumJS with high-resolution satellite imagery, true-to-scale terrain rendering, and study area boundary clipping (Dhordo / White Desert 20 km² region: `69.828°E–69.872°E, 23.850°N–23.890°N`).
-- **Dynamic Terrain Providers**: Seamless fallback between Cesium World Terrain and Ellipsoid with customizable vertical exaggeration for flat salt-marsh relief.
+### 1. Direct-Access Left Navigation Rail (Google Maps-Style)
+- **Minimalist Icon Rail**: Sleek, vertical left navigation rail providing instant one-click access to all primary analytical and visualization tools without cluttering the 3D globe.
+- **One-Click Feature Toggles**:
+  - **3D / 2D Mode**: Toggle between 3D ellipsoidal globe perspective and top-down 2D orthographic map with smooth scene morphing.
+  - **Multidirectional Hillshade**: 8-azimuth composite RGBA hillshade layer (30m resolution) with active status badges.
+  - **2m Contours**: 2m-interval elevation contour lines vectorized directly into GeoJSON and clamped to terrain.
+  - **Viewshed Analysis**: Interactive line-of-sight analysis tool with radial visibility sectors.
+  - **Add Pin**: Quick location drop tool to mark points of interest directly on the 3D surface.
+  - **Solar Lighting Cycle**: Real-time celestial sun position cycling through *Golden Hour*, *Sunset*, *Dawn*, and *Noon*.
+  - **3D Navigation Dock**: Show or hide the floating on-screen navigation D-Pad.
+  - **Reset Camera**: Instantly re-centers camera on the White Desert study area.
 
-### 2. Analytical Overlays (DTM Pipeline)
-- **Multi-directional Hillshade**: 8-azimuth composite RGBA hillshade layer derived from the Copernicus GLO-30 dataset with Z-factor exaggeration (3.0×) to reveal subtle surface undulations and salt pans.
-- **Topographic Contour Lines**: 2m-interval elevation contour lines vectorized directly into GeoJSON and clamped directly to the 3D globe terrain.
-- **Toggleable Overlays**: Instant HUD toggle buttons for Hillshade and Contour layers with smooth alpha blending.
+### 2. Line-of-Sight Viewshed Analysis
+- **Interactive Observer Placement**: Click the Viewshed tool on the left rail, then click anywhere on the terrain to place an observer (default eye height: `+1.8m` above ground).
+- **High-Density Radial Ray Sampling**:
+  - Samples **360 radial bearings** at `1.0°` angular resolution with up to 50 radial distance steps (extending up to 2,500m).
+  - Eliminates diamond/square interpolation artifacts, rendering smooth, solid, continuous visibility patches.
+- **Terrain-Clamped Surface Classification**: Uses Cesium's `ClassificationType.TERRAIN` ground polygons:
+  - 🟢 **Visible Areas (Green)**: Direct line of sight from the observer's eye height.
+  - 🔴 **Occluded Areas (Red)**: Obstructed by terrain ridges, dunes, or elevation relief.
+- **HUD Legend & Clear Control**: Live floating status pill indicating visibility color states with a single-click "Clear" button.
 
-### 3. Interactive 3D Custom Points Management System
-- **Click-to-Place Pinning**: Click "+ Add 3D Point" in the HUD, then click anywhere on the 3D terrain to capture exact Cartesian coordinates and raycasted ground elevation.
-- **Rich Metadata Modal**: Define Name, Category (*Viewpoint*, *Landmark*, *Camp*, *Research*, *Hazard*), and detailed descriptions.
-- **Interactive Marker Visualizations**: Color-coded billboard pins and point labels clamped to ground with selection indicators.
-- **Fly-To & Inspection**: Click any pin or list item to smoothly fly the camera to the target location with point detail cards.
-- **Local Persistence**: Automatic synchronization to browser `localStorage` with real-time badge count.
+### 3. Floating On-Screen 3D Navigation D-Pad & Controls
+- **Ergonomic Directional D-Pad**: Floating widget anchored at the bottom-right corner for touch and mouse navigation:
+  - **Tilt Up / Down**: Pitch camera toward the horizon or downward toward nadir.
+  - **Rotate Left / Right**: Smooth heading orbit around the terrain focal point.
+  - **Compass Needle / Center Button**: Real-time compass indicator tracking true camera heading; click to instantly reset heading to True North (`0°`) and restore optimal 3D pitch.
+  - **Continuous Hold Action**: Smooth continuous camera motion when holding down directional buttons.
+  - **Collapsible Body**: Minimize/expand toggle to maximize screen real estate when desired.
+- **Floating Zoom Stack**: Top-right floating controls (`+` / `−`) with smooth raycast-targeted altitude zooming.
 
-### 4. Real-Time Solar Illumination and Lighting Presets
-- **Julian Date Solar Simulation**: Uses Cesium's physical lighting engine (`globe.enableLighting = true`) with astronomical Julian dates calculated for Kutch's geographic coordinates (`23.8° N, 69.8° E`).
+### 4. 3D Digital Terrain & Copernicus GLO-30 DTM Overlays
+- **Terrain Relief & Globe**: Powered by CesiumJS with high-resolution satellite basemaps and true-to-scale terrain rendering centered on the Dhordo / White Desert study area (`69.828°E–69.872°E, 23.850°N–23.890°N`).
+- **Multidirectional Hillshade**: 8-azimuth composite RGBA raster derived from Copernicus GLO-30 elevation data with Z-factor exaggeration (3.0×) to highlight subtle salt pans and elevation undulations.
+- **Topographic Contour Lines**: 2m-interval elevation contour lines clamped directly to the 3D terrain surface with high-contrast styling.
+
+### 5. Interactive 3D Custom Points Management
+- **Click-to-Place Pinning**: Click "Add Pin" and click anywhere on the 3D terrain to capture exact Cartesian coordinates and raycasted ground elevation.
+- **Rich Metadata Modal**: Define Point Name, Category (*Viewpoint*, *Camp / Tent*, *Heritage*), and detailed descriptions.
+- **Interactive Marker Visualizations**: Color-coded billboard pins and point labels clamped to the ground with selection indicators.
+- **Fly-To & Inspection**: Click any pin to open a point detail card with coordinates and a smooth "Fly Here in 3D" camera transition.
+- **Local Persistence**: Automatic synchronization to browser `localStorage`.
+
+### 6. Real-Time Solar Illumination & Lighting Presets
+- **Astronomical Sun Simulation**: Physical lighting engine (`globe.enableLighting = true`) with Julian dates calculated for Kutch's geographic coordinates (`23.8° N, 69.8° E`).
 - **One-Click Lighting Presets**:
-  - **Dawn / Golden Hour**: Warm, low-angle grazing light accentuating subtle terrain contours and salt crusts.
+  - **Golden Hour**: Warm, low-angle grazing light accentuating subtle terrain contours and salt crusts.
   - **Noon**: High-overhead sun with maximum visibility and vivid salt reflectivity.
   - **Sunset**: Deep orange and twilight ambient tones.
-  - **Night**: Starry celestial skybox with minimal ambient lunar glow.
+  - **Dawn**: Soft early-morning atmospheric glow.
 
-### 5. Cinematic Camera Controls and Navigation
-- **View Modes**:
-  - **3D Perspective**: True ellipsoidal 3D globe.
-  - **2.5D Columbus View**: Planar perspective mode with elevation extrusion.
-  - **2D Map**: Top-down orthographic cartographic map.
-- **Tour Presets**: One-click smooth camera flythroughs: *White Desert Overview*, *Rann Focus*, *Low-Angle Horizon*, *Oblique South*, and *Top-Down Nadir*.
-- **360° Continuous Orbit**: Automatic hands-free continuous orbital rotation around the active center of interest.
-- **3D Horizon Tilt**: Quick-tilt mechanism switching between top-down overview and dramatic low-angle horizon inspection.
-- **Zoom Stack**: Floating right-hand zoom controls (`+` / `−`) and smooth mouse-wheel zooming.
-
-### 6. Real-Time HUD Telemetry and Glassmorphic UI
-- **Live Flight Telemetry**: Live readout of Camera Latitude, Longitude, Altitude (m / km), and Compass Heading.
-- **Responsive Dark HUD**: Frosted glassmorphism panels styled with modern typography (Outfit & Inter) and zero-dependency Vanilla CSS.
+### 7. Camera Presets & Tour Modes
+- **Quick-Access Tour Presets**:
+  - *White Desert Expanse* (North-facing horizon view across the salt flats)
+  - *White Rann Sunset View* (West-facing view toward the Arabian Sea horizon)
+  - *Rann Utsav Tent City* (Cultural encampment and festival hub near Dhordo)
+  - *Kalo Dungar (Black Hills)* (Highest peak in Kutch at 462m overlooking the Great Rann)
+  - *Top-down Nadir Map* (Vertical 90° view for boundary inspection)
 
 ---
 
-## Keyboard Shortcuts
+## 🎮 Navigation & Keyboard Controls
 
-| Key | Action |
+| Control | Action |
 | :--- | :--- |
-| `+` / `=` | Zoom In toward terrain |
-| `-` / `_` | Zoom Out from terrain |
-| `Escape` | Cancel active point placement / Close dialogs & drawer |
-| `Left Mouse Drag` | Rotate / Tilt / Pan camera view |
-| `Right Mouse Drag` / `Scroll` | Zoom in / Zoom out |
-| `Middle Mouse Drag` | Look around / pitch and heading adjustment |
+| **D-Pad Up / Down** | Tilt camera pitch (horizon ↔ nadir) |
+| **D-Pad Left / Right** | Rotate / yaw camera heading around terrain center |
+| **D-Pad Center (🧭)** | Reset heading to True North (`0°`) and restore 3D pitch |
+| **Floating `+` / `−`** | Zoom in / Zoom out toward terrain |
+| **`+` / `=` / `-` / `_` (Keyboard)** | Zoom in / Zoom out |
+| **`Escape` (Keyboard)** | Cancel active pin or viewshed placement |
+| **Left Mouse Drag** | Pan across the map (2D) / Rotate & pan (3D) |
+| **Right Mouse Drag / Scroll** | Smooth continuous zoom |
+| **Middle Mouse Drag** | 3D look-around, pitch, and heading adjustment |
 
 ---
 
-## Project Architecture
+## 🏗️ Project Architecture
 
 ```
 3D-Map-Gujarat-/
-├── index.html                  # HTML entry point with fonts & HUD container
-├── package.json                # Project dependencies & scripts
+├── index.html                  # HTML entry point with font imports & HUD container
+├── package.json                # Project dependencies and npm scripts
 ├── tsconfig.json               # TypeScript compiler configuration
 ├── vite.config.ts              # Vite configuration with vite-plugin-cesium
 ├── .env                        # Environment variables (Cesium Ion Token)
@@ -87,26 +111,28 @@ The application visualizes high-resolution satellite imagery integrated with a *
 │   └── convert-data.py         # Python DTM processing pipeline (Copernicus GLO-30)
 │
 └── src/
-    ├── main.ts                 # App bootstrap, HUD layout, telemetry, event bus
+    ├── main.ts                 # Application bootstrap, HUD left rail, event bus
     ├── config/
-    │   ├── camera.config.ts    # Study area bounding box, camera angles & presets
-    │   └── layer.config.ts     # Imagery & Terrain providers (Sentinel, World Terrain, Hillshade)
+    │   ├── camera.config.ts    # Study area boundaries, camera angles & presets
+    │   └── layer.config.ts     # Imagery & Terrain providers (Sentinel, World Terrain)
     ├── modules/
-    │   ├── customPoints.ts     # 3D Point manager, markers, raycasting, LocalStorage
-    │   └── terrain.ts          # Cesium Viewer lifecycle, lighting, navigation, overlays
+    │   ├── customPoints.ts     # 3D Custom Points manager, pins, raycasting, LocalStorage
+    │   ├── navigationPad.ts    # Floating 3D Navigation D-Pad, compass dial & tilt controls
+    │   ├── terrain.ts          # Cesium Viewer lifecycle, lighting, navigation, overlays
+    │   └── viewshed.ts         # High-resolution radial ray viewshed analysis module
     └── ui/
-        └── styles.css          # Glassmorphic HUD styles, drawer, cards, modal
+        └── styles.css          # Glassmorphic HUD styles, rail, modal, D-pad & cards
 ```
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v18.0.0 or higher recommended)
-- `npm` or `yarn` / `pnpm`
-- (Optional for DTM processing) Python 3.9+ with `rasterio`, `numpy`, `scipy`, `shapely`, `fiona`
+- **Node.js**: v18.0.0 or higher recommended
+- **npm**, **yarn**, or **pnpm**
+- *(Optional for DTM processing)*: Python 3.9+ with `rasterio`, `numpy`, `scipy`, `shapely`, `fiona`
 
 ### 1. Clone the Repository
 
@@ -129,7 +155,7 @@ Create or edit `.env` in the root directory:
 VITE_CESIUM_ION_TOKEN=your_cesium_ion_access_token_here
 ```
 
-> **Note:** A default fallback token or free personal token from [Cesium Ion](https://ion.cesium.com/tokens) can be used to stream Cesium World Terrain and Bing/Sentinel basemaps.
+> **Note:** A free personal token from [Cesium Ion](https://ion.cesium.com/tokens) can be used to stream Cesium World Terrain and Bing/Sentinel basemaps.
 
 ### 4. Start Development Server
 
@@ -145,7 +171,7 @@ Open your browser at `http://localhost:5173/`.
 npm run build
 ```
 
-The compiled, minified bundle will be output to the `dist/` directory. You can preview it with:
+The compiled, minified bundle will be output to the `dist/` directory. Preview the production build with:
 
 ```bash
 npm run preview
@@ -153,7 +179,7 @@ npm run preview
 
 ---
 
-## DTM Processing Pipeline (Python)
+## 🐍 DTM Processing Pipeline (Python)
 
 To re-generate or modify the analytical hillshade and contour overlays from raw GeoTIFF elevation rasters:
 
@@ -162,7 +188,7 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
    ```bash
    pip install rasterio numpy scipy shapely fiona
    ```
-3. Run the pipeline:
+3. Run the processing pipeline:
    ```bash
    python scripts/convert-data.py
    ```
@@ -172,7 +198,7 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
 
 ---
 
-## Data Credits and Attributions
+## 🛰️ Data Credits & Attributions
 
 - **Elevation Model**: [Copernicus DEM GLO-30](https://spacedata.copernicus.eu/) (European Space Agency / Sinergise)
 - **3D Globe Engine**: [CesiumJS](https://cesium.com/platform/cesiumjs/)
@@ -180,6 +206,6 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
