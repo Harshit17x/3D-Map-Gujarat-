@@ -17,7 +17,7 @@ export interface ViewerSetupResult {
   viewer: Cesium.Viewer;
   flyToStudyArea: (presetId?: string, duration?: number) => void;
   setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => void;
-  setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => void;
+  setLightingPreset: (preset: 'golden' | 'noon' | 'sunset' | 'sunrise') => void;
   toggleHillshadeLayer: (show: boolean) => void;
   toggleContourLayer: (show: boolean) => void;
   zoomIn: (factor?: number) => void;
@@ -108,7 +108,7 @@ export async function initializeCesiumViewer(containerId: string): Promise<Viewe
     viewer,
     flyToStudyArea: (presetId?: string, duration?: number) => flyToStudyArea(viewer, presetId, duration),
     setSceneMode: (mode: '3D' | 'COLUMBUS' | '2D') => setSceneMode(viewer, mode),
-    setLightingPreset: (preset: 'golden' | 'noon' | 'sunset') => setLightingPreset(viewer, preset),
+    setLightingPreset: (preset: 'golden' | 'noon' | 'sunset' | 'sunrise') => setLightingPreset(viewer, preset),
     toggleHillshadeLayer: (show: boolean) => toggleHillshadeLayer(hillshadeLayer, show),
     toggleContourLayer: (show: boolean) => toggleContourLayer(contourDataSource, show),
     zoomIn: (factor?: number) => zoomIn(viewer, factor),
@@ -129,6 +129,9 @@ function tuneAtmosphereAndLighting(viewer: Cesium.Viewer): void {
   // Globe lighting brings out subtle surface terrain gradients
   globe.enableLighting = true;
   globe.depthTestAgainstTerrain = true;
+  // Vertical exaggeration so peaks and ridges stand out with dramatic clarity
+  scene.verticalExaggeration = 2.0;
+  scene.verticalExaggerationRelativeHeight = 0.0;
 
   // Atmospheric fog adds depth perception across the flat horizon
   scene.fog.enabled = true;
@@ -145,7 +148,7 @@ function tuneAtmosphereAndLighting(viewer: Cesium.Viewer): void {
 /**
  * Switch solar time to control shadows and light angle over the desert.
  */
-export function setLightingPreset(viewer: Cesium.Viewer, preset: 'golden' | 'noon' | 'sunset'): void {
+export function setLightingPreset(viewer: Cesium.Viewer, preset: 'golden' | 'noon' | 'sunset' | 'sunrise'): void {
   // Kutch local time is UTC+5:30.
   let utcHour = 11; // 16:30 local = 11:00 UTC (Golden Hour)
 
@@ -153,6 +156,8 @@ export function setLightingPreset(viewer: Cesium.Viewer, preset: 'golden' | 'noo
     utcHour = 7; // 12:30 local = 07:00 UTC (High Noon)
   } else if (preset === 'sunset') {
     utcHour = 12.75; // 18:15 local = 12:45 UTC (Sunset)
+  } else if (preset === 'sunrise') {
+    utcHour = 1.25; // 06:45 local = 01:15 UTC (Dawn/Sunrise)
   }
 
   const julianDate = Cesium.JulianDate.fromDate(new Date(Date.UTC(2025, 0, 15, Math.floor(utcHour), Math.floor((utcHour % 1) * 60))));

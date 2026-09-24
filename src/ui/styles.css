@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Base & Resets (Google Maps Authentic Light Aesthetic)
+   Base & Resets (Clean Light Aesthetic)
    ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -26,18 +26,14 @@ html, body {
   z-index: 1;
 }
 
-/* ==========================================================================
-   Cesium Chrome Overrides
-   ========================================================================== */
+/* Cesium Chrome Overrides */
 .cesium-viewer-bottom,
 .cesium-credit-logoContainer,
 .cesium-credit-expand-link {
   display: none !important;
 }
 
-/* ==========================================================================
-   HUD Overlay Container
-   ========================================================================== */
+/* HUD Overlay Container */
 #appHud {
   position: absolute;
   top: 0;
@@ -53,7 +49,7 @@ html, body {
 }
 
 /* ==========================================================================
-   1. Google Maps Slim Left Rail (Reference Image 2)
+   1. Direct Features Left Rail (All Features Directly Accessible Here!)
    ========================================================================== */
 .gmap-rail {
   position: absolute;
@@ -63,14 +59,20 @@ html, body {
   width: 68px;
   background: #ffffff;
   border-right: 1px solid #dadce0;
-  box-shadow: 1px 0 6px rgba(60,64,67,0.12);
+  box-shadow: 1px 0 8px rgba(60, 64, 67, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 10px 0 12px;
-  gap: 2px;
+  gap: 3px;
   z-index: 100;
   user-select: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.gmap-rail::-webkit-scrollbar {
+  display: none;
 }
 
 .rail-item {
@@ -78,7 +80,7 @@ html, body {
   background: transparent;
   border: none;
   border-radius: 8px;
-  padding: 6px 2px;
+  padding: 5px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -86,6 +88,7 @@ html, body {
   cursor: pointer;
   color: #3c4043;
   transition: all 0.15s ease;
+  position: relative;
 }
 
 .rail-item:hover {
@@ -108,6 +111,7 @@ html, body {
   background: #e8eaed;
 }
 
+/* Active State for Features */
 .rail-item.active {
   color: #1a73e8;
   font-weight: 600;
@@ -123,24 +127,38 @@ html, body {
 }
 
 .rail-label {
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: 0.61rem;
+  font-weight: 600;
   line-height: 1.1;
   text-align: center;
   white-space: nowrap;
+  letter-spacing: -0.2px;
 }
 
-.rail-badge {
+/* Status Badges */
+.rail-badge-on {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 1px;
+  right: 1px;
   background: #1a73e8;
   color: #ffffff;
-  font-size: 0.6rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 9999px;
-  line-height: 1.2;
+  line-height: 1.1;
+}
+
+.rail-badge-dot {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  background: #00c853;
+  border-radius: 50%;
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 4px rgba(0, 200, 83, 0.6);
 }
 
 .rail-hero-pill {
@@ -154,7 +172,7 @@ html, body {
   color: #1a73e8;
   background: #ffffff;
   transition: all 0.15s ease;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .rail-item:hover .rail-hero-pill {
@@ -167,10 +185,11 @@ html, body {
 }
 
 .rail-divider {
-  width: 44px;
+  width: 42px;
   height: 1px;
   background: #e8eaed;
-  margin: 6px 0;
+  margin: 4px 0;
+  flex-shrink: 0;
 }
 
 .rail-spacer {
@@ -178,389 +197,204 @@ html, body {
 }
 
 /* ==========================================================================
-   2. Google Maps Flyout Drawer / Sidebar (Reference Image 1)
+   2. Minimalist Action Banners (Prompted at Top-Center When Mode is Active)
    ========================================================================== */
-.gmap-drawer {
+.placement-banner {
   position: absolute;
-  top: 0;
-  left: 68px;
-  bottom: 0;
-  width: 360px;
-  max-width: calc(100vw - 68px);
-  background: #ffffff;
-  border-right: 1px solid #dadce0;
-  box-shadow: 4px 0 20px rgba(60,64,67,0.18);
-  display: flex;
-  flex-direction: column;
-  z-index: 95;
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.gmap-drawer.drawer-closed {
-  transform: translateX(-100%);
-  pointer-events: none;
-}
-
-/* Drawer Header (like Image 1) */
-.drawer-header-row {
-  padding: 16px 18px 14px;
-  border-bottom: 1px solid #e8eaed;
-  display: flex;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.drawer-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.gmap-logo-text {
-  font-family: 'Outfit', 'Inter', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.g-blue   { color: #4285F4; }
-.g-red    { color: #EA4335; }
-.g-yellow { color: #FBBC05; }
-.g-green  { color: #34A853; }
-
-.drawer-sub {
-  font-size: 0.74rem;
-  color: #5f6368;
-}
-
-.drawer-close-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
-  color: #5f6368;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.drawer-close-btn:hover {
-  background: #f1f3f4;
-  color: #202124;
-}
-
-/* Drawer Scrollable Content */
-.drawer-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px 0;
-}
-
-.drawer-content::-webkit-scrollbar {
-  width: 5px;
-}
-.drawer-content::-webkit-scrollbar-thumb {
-  background: #dadce0;
-  border-radius: 10px;
-}
-
-/* Drawer Hero Button (like "Ask Maps" in Image 1) */
-.drawer-hero-container {
-  padding: 8px 18px 12px;
-}
-
-.drawer-hero-btn {
-  width: 100%;
-  padding: 10px 16px;
+  gap: 10px;
+  padding: 9px 18px;
   background: #ffffff;
   border: 1px solid #dadce0;
   border-radius: 9999px;
-  box-shadow: 0 1px 3px rgba(60,64,67,0.12);
+  box-shadow: 0 4px 16px rgba(60, 64, 67, 0.22);
+  z-index: 80;
+  pointer-events: auto;
+  animation: bannerSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bannerSlideDown {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.banner-icon {
+  font-size: 1.1rem;
+}
+
+.banner-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #202124;
+}
+
+.banner-cancel-btn {
+  background: #f1f3f4;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.banner-cancel-btn:hover {
+  background: #d93025;
+  border-color: #d93025;
+  color: #ffffff;
+}
+
+
+/* ==========================================================================
+   3. Floating Zoom Controls (Top-Right Corner)
+   ========================================================================== */
+.hud-zoom-control {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(60, 64, 67, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 40;
+  overflow: hidden;
+  user-select: none;
+}
+
+.zoom-ctrl-btn {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  color: #3c4043;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: 'Inter', Roboto, sans-serif;
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: #1a73e8;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.drawer-hero-btn:hover {
-  background: #f8fafd;
-  border-color: #1a73e8;
-  box-shadow: 0 2px 6px rgba(26,115,232,0.2);
+.zoom-ctrl-btn:hover {
+  background: #f1f3f4;
+  color: #1a73e8;
 }
 
-.drawer-hero-btn.active-mode {
+.zoom-ctrl-btn:active {
   background: #e8f0fe;
-  border-color: #1a73e8;
-  font-weight: 600;
+  color: #1a73e8;
 }
 
-.drawer-hero-icon {
-  font-size: 1.15rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.zoom-ctrl-divider {
+  width: 24px;
+  height: 1px;
+  background: #dadce0;
 }
 
-/* Collapsible list inside drawer for Saved Points */
-.drawer-saved-collapsible {
+/* ==========================================================================
+   4. Floating 3D Navigation Dock (Bottom-Right Corner)
+   ========================================================================== */
+.hud-nav-dock {
+  position: absolute;
+  bottom: 34px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(60, 64, 67, 0.18);
+  padding: 8px 10px 10px;
+  z-index: 40;
   display: flex;
   flex-direction: column;
-  background: #f8f9fa;
-  border-top: 1px solid #e8eaed;
-  border-bottom: 1px solid #e8eaed;
-  padding: 8px 12px;
+  gap: 6px;
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.hud-nav-dock.dock-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+
+.dock-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 2px 2px;
+}
+
+.dock-title-wrap {
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
-/* Drawer Toggle Row (like Image 1 "Show side bar" toggle) */
-.drawer-toggle-row {
-  padding: 12px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  transition: background 0.15s;
+.dock-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #3c4043;
+  letter-spacing: -0.1px;
 }
 
-.drawer-toggle-row:hover {
-  background: #f8f9fa;
-}
-
-.drawer-row-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 1;
-}
-
-.drawer-row-icon {
-  width: 24px;
-  height: 24px;
+.dock-minimize-btn {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  color: #70757a;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  color: #5f6368;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
 }
 
-.drawer-row-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.drawer-row-title {
-  font-size: 0.88rem;
-  font-weight: 500;
+.dock-minimize-btn:hover {
+  background: #f1f3f4;
   color: #202124;
 }
 
-.drawer-row-desc {
-  font-size: 0.72rem;
-  color: #5f6368;
-}
-
-/* Action Rows (clickable list items like Image 1) */
-.drawer-action-row {
-  width: 100%;
-  padding: 12px 18px;
-  background: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s;
-}
-
-.drawer-action-row:hover {
-  background: #f8f9fa;
-}
-
-.drawer-action-row:active {
-  background: #f1f3f4;
-}
-
-.drawer-row-arrow {
-  font-size: 1.1rem;
-  color: #bdc1c6;
-  font-weight: 300;
-}
-
-.drawer-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #1a73e8;
-  background: #e8f0fe;
-  padding: 3px 8px;
-  border-radius: 9999px;
-  white-space: nowrap;
-}
-
-/* Google-style Toggle Switch (Image 1) */
-.gmap-switch {
-  position: relative;
-  display: inline-block;
-  width: 38px;
-  height: 20px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.gmap-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.gmap-slider {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #bdc1c6;
-  border-radius: 20px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.gmap-slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
+.hud-nav-dock.dock-collapsed {
+  padding: 6px;
   border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.gmap-switch input:checked + .gmap-slider {
-  background-color: #007b83;
-  background-color: #1a73e8;
+.hud-nav-dock.dock-collapsed .dock-body,
+.hud-nav-dock.dock-collapsed .dock-title-wrap {
+  display: none !important;
 }
 
-.gmap-switch input:checked + .gmap-slider:before {
-  transform: translateX(18px);
+.hud-nav-dock.dock-collapsed .dock-minimize-btn svg {
+  transform: rotate(180deg);
 }
 
-.drawer-divider {
-  height: 1px;
-  background: #e8eaed;
-  margin: 8px 0;
-}
-
-.drawer-section-title {
-  padding: 10px 18px 4px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #70757a;
-}
-
-/* View Mode Segmented Controls */
-.view-mode-container {
-  padding: 8px 18px 12px;
-}
-
-.view-mode-pills {
-  display: flex;
-  background: #f1f3f4;
-  border-radius: 8px;
-  padding: 3px;
-  gap: 2px;
-}
-
-.view-pill {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 7px 6px;
-  border-radius: 6px;
-  font-family: 'Inter', Roboto, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #5f6368;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.view-pill:hover {
-  color: #202124;
-}
-
-.view-pill.active {
-  background: #ffffff;
-  color: #1a73e8;
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgba(60,64,67,0.15);
-}
-
-/* 3D Navigation Card inside Drawer */
-.drawer-nav-card {
-  margin: 8px 18px 16px;
-  padding: 12px;
-  background: #f8f9fa;
-  border: 1px solid #e8eaed;
-  border-radius: 12px;
+.dock-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.nav-mode-switcher {
-  display: flex;
-  background: #e8eaed;
-  border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
-}
-
-.nav-mode-pill {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 5px 8px;
-  border-radius: 5px;
-  font-size: 0.74rem;
-  font-weight: 500;
-  color: #5f6368;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.15s ease;
-}
-
-.nav-mode-pill.active {
-  background: #ffffff;
-  color: #1a73e8;
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgba(60,64,67,0.15);
-}
-
-.nav-controls-layout {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
 }
 
 .dpad-cross-container {
   display: grid;
-  grid-template-columns: repeat(3, 34px);
-  grid-template-rows: repeat(3, 34px);
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(3, 32px);
   gap: 3px;
   justify-content: center;
   align-items: center;
@@ -568,8 +402,8 @@ html, body {
 }
 
 .dpad-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   background: #ffffff;
   border: 1px solid #dadce0;
   border-radius: 8px;
@@ -578,7 +412,7 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(60,64,67,0.12);
+  box-shadow: 0 1px 2px rgba(60,64,67,0.1);
   transition: all 0.12s ease;
   touch-action: none;
 }
@@ -601,236 +435,129 @@ html, body {
   grid-column: 2; grid-row: 2;
   background: #f8f9fa;
   border-color: #dadce0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 .dpad-right { grid-column: 3; grid-row: 2; }
 .dpad-down { grid-column: 2; grid-row: 3; }
 
-.nav-quick-side {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.compass-dial {
+  display: inline-block;
+  transition: transform 0.1s linear;
 }
 
-.nav-zoom-group,
-.nav-angle-group {
-  display: flex;
-  gap: 6px;
-}
-
-.nav-zoom-btn,
-.dpad-pill-btn {
-  flex: 1;
-  padding: 6px 8px;
-  background: #ffffff;
+/* ==========================================================================
+   4. Spatial Telemetry Status Bar (GIS Standard at Bottom)
+   ========================================================================== */
+.hud-telemetry-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 78px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid #dadce0;
-  border-radius: 8px;
-  color: #3c4043;
-  font-size: 0.74rem;
-  font-weight: 500;
+  border-radius: 9999px;
+  box-shadow: 0 1px 4px rgba(60, 64, 67, 0.15);
+  padding: 4px 14px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.nav-zoom-btn:hover,
-.dpad-pill-btn:hover {
-  background: #e8f0fe;
-  border-color: #1a73e8;
-  color: #1a73e8;
-}
-
-/* Floating Bottom-Left 3D Nav Dock (Next to rail) */
-.hud-nav-dock {
-  position: absolute;
-  bottom: 24px;
-  left: 82px;
-  background: #ffffff;
-  border: 1px solid #dadce0;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(60,64,67,0.2);
-  padding: 12px;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
   gap: 10px;
-  pointer-events: auto;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #3c4043;
+  z-index: 30;
   user-select: none;
 }
 
-.hud-nav-dock.dock-hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(12px);
-}
-
-/* Telemetry Grid */
-.telemetry-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.telem-cell {
-  background: #ffffff;
-  border: 1px solid #e8eaed;
-  border-radius: 8px;
-  padding: 7px 9px;
+.telem-item {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  gap: 4px;
 }
 
-.telem-label {
-  font-size: 0.64rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #70757a;
+.telem-icon {
+  font-size: 0.75rem;
 }
 
-.telem-val {
-  font-family: 'Outfit', 'Inter', monospace;
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: #202124;
+.telem-divider {
+  width: 1px;
+  height: 12px;
+  background: #dadce0;
 }
 
 /* ==========================================================================
-   3. Placement Banners (Clean Floating Google Maps Prompt at Top Center)
+   5. Viewshed HUD Legend (Bottom-Right Pill)
    ========================================================================== */
-.placement-banner {
+.viewshed-hud-legend {
   position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 24px;
+  right: 24px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
+  gap: 8px;
+  padding: 6px 12px;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #202124;
+  border-radius: 9999px;
   background: #ffffff;
   border: 1px solid #dadce0;
-  border-radius: 9999px;
-  box-shadow: 0 4px 16px rgba(60,64,67,0.25), 0 1px 3px rgba(60,64,67,0.15);
-  z-index: 60;
+  box-shadow: 0 2px 8px rgba(60,64,67,0.2);
+  z-index: 30;
   pointer-events: auto;
-  animation: bannerSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes bannerSlideDown {
-  from { opacity: 0; transform: translate(-50%, -12px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-.banner-icon {
-  font-size: 1.1rem;
-}
-
-.banner-text {
-  font-size: 0.86rem;
+.vs-legend-title {
+  color: #70757a;
   font-weight: 600;
-  color: #202124;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
 }
 
-.banner-cancel-btn {
+.vs-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vs-legend-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.vs-legend-swatch.vs-visible {
+  background: #00c853;
+  box-shadow: 0 0 6px rgba(0, 200, 83, 0.6);
+}
+
+.vs-legend-swatch.vs-blocked {
+  background: #d50000;
+  box-shadow: 0 0 6px rgba(213, 0, 0, 0.6);
+}
+
+.vs-clear-btn {
   background: #f1f3f4;
-  border: 1px solid #dadce0;
-  color: #3c4043;
-  font-size: 0.76rem;
-  font-weight: 600;
-  padding: 5px 12px;
+  border: none;
+  font-size: 0.7rem;
+  padding: 2px 7px;
   border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.15s;
-}
-
-.banner-cancel-btn:hover {
-  background: #d93025;
-  border-color: #d93025;
-  color: #ffffff;
-}
-
-/* ==========================================================================
-   4. Saved Points Drawer & List
-   ========================================================================== */
-.points-list {
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.point-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: #f8f9fa;
-  border: 1px solid #e8eaed;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.point-item:hover {
-  background: #e8f0fe;
-  border-color: #1a73e8;
-}
-
-.point-item-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow: hidden;
-}
-
-.point-item-icon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.point-item-text {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.point-item-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #202124;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.point-item-sub {
-  font-size: 0.7rem;
-  color: #70757a;
-}
-
-.point-item-del {
-  background: transparent;
-  border: none;
-  color: #70757a;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-}
-
-.point-item-del:hover {
   color: #d93025;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.vs-clear-btn:hover {
   background: #fce8e6;
 }
 
 /* ==========================================================================
-   5. Point Detail Floating Card (Google Maps Place Card)
+   6. Point Detail Floating Card (Google Maps Place Card)
    ========================================================================== */
 .point-detail-card {
   position: absolute;
@@ -876,21 +603,21 @@ html, body {
 
 .card-title {
   font-family: 'Outfit', 'Inter', sans-serif;
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #202124;
   line-height: 1.25;
 }
 
 .card-desc {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #5f6368;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .card-coords {
   font-family: monospace;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: #70757a;
   padding-top: 6px;
   border-top: 1px solid #e8eaed;
@@ -939,7 +666,7 @@ html, body {
 }
 
 /* ==========================================================================
-   6. Modals (Clean Solid White Material Dialogs)
+   7. Modals
    ========================================================================== */
 .modal-overlay {
   position: fixed;
@@ -960,7 +687,7 @@ html, body {
 
 .modal-dialog {
   width: 90%;
-  max-width: 440px;
+  max-width: 420px;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -979,7 +706,7 @@ html, body {
 
 .modal-title {
   font-family: 'Outfit', 'Inter', sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #202124;
   display: flex;
@@ -1008,7 +735,7 @@ html, body {
 }
 
 .form-label {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1022,7 +749,7 @@ html, body {
   padding: 8px 12px;
   color: #202124;
   font-family: 'Inter', sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -1048,9 +775,9 @@ html, body {
   background: #f8f9fa;
   border: 1px solid #dadce0;
   color: #3c4043;
-  padding: 6px 12px;
+  padding: 5px 11px;
   border-radius: 9999px;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -1083,7 +810,7 @@ html, body {
   background: #ffffff;
   border: 1px solid #dadce0;
   color: #3c4043;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
@@ -1099,7 +826,7 @@ html, body {
   background: #1a73e8;
   border: none;
   color: #ffffff;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
@@ -1109,60 +836,6 @@ html, body {
 
 .btn-primary:hover {
   background: #174ea6;
-}
-
-/* ==========================================================================
-   7. Viewshed HUD Legend (Floating Pill in Bottom-Right)
-   ========================================================================== */
-.viewshed-hud-legend {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 14px;
-  font-family: 'Outfit', 'Inter', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #202124;
-  border-radius: 9999px;
-  background: #ffffff;
-  border: 1px solid #dadce0;
-  box-shadow: 0 2px 8px rgba(60,64,67,0.2);
-  z-index: 30;
-  pointer-events: auto;
-}
-
-.vs-legend-title {
-  color: #70757a;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
-}
-
-.vs-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.vs-legend-swatch {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.vs-legend-swatch.vs-visible {
-  background: #00c853;
-  box-shadow: 0 0 6px rgba(0, 200, 83, 0.6);
-}
-
-.vs-legend-swatch.vs-blocked {
-  background: #d50000;
-  box-shadow: 0 0 6px rgba(213, 0, 0, 0.6);
 }
 
 /* ==========================================================================
@@ -1182,15 +855,23 @@ html, body {
     height: 32px;
   }
   .rail-label {
-    font-size: 0.6rem;
-  }
-  .gmap-drawer {
-    left: 56px;
-    width: calc(100vw - 56px);
+    font-size: 0.58rem;
   }
   .point-detail-card {
     left: 64px;
     right: 12px;
     width: auto;
+  }
+  .hud-nav-dock {
+    bottom: 28px;
+    right: 8px;
+    transform: scale(0.9);
+    transform-origin: bottom right;
+  }
+  .hud-telemetry-bar {
+    left: 60px;
+    bottom: 4px;
+    font-size: 0.62rem;
+    padding: 2px 8px;
   }
 }

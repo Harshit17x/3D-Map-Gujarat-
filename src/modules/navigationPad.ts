@@ -16,22 +16,33 @@ export interface NavigationPadControls {
 }
 
 /**
- * Finds the ground point in the center of the camera viewport for orbit calculations.
+ * Finds the ground point in the camera viewport for orbit calculations.
+ * If looking toward the horizon/sky, it samples downward so the camera stays anchored to the terrain peak.
  */
 function getCameraLookTarget(viewer: Cesium.Viewer): { target: Cesium.Cartesian3; range: number } | null {
   const camera = viewer.camera;
-  const windowPosition = new Cesium.Cartesian2(
-    viewer.container.clientWidth / 2,
-    viewer.container.clientHeight / 2
-  );
-  const ray = camera.getPickRay(windowPosition);
-  if (!ray) return null;
+  const cx = viewer.container.clientWidth / 2;
+  const cy = viewer.container.clientHeight / 2;
+  const height = viewer.container.clientHeight;
 
-  const target = viewer.scene.globe.pick(ray, viewer.scene) || camera.pickEllipsoid(windowPosition);
-  if (!target) return null;
+  // Sample center first, then progressively lower on the screen to catch terrain when looking at peaks
+  const testY = [cy, cy + height * 0.15, cy + height * 0.3, cy + height * 0.42];
 
-  const range = Cesium.Cartesian3.distance(camera.position, target);
-  return { target, range };
+  for (const y of testY) {
+    const pt = new Cesium.Cartesian2(cx, Math.min(y, height - 10));
+    const ray = camera.getPickRay(pt);
+    if (!ray) continue;
+
+    const target = viewer.scene.globe.pick(ray, viewer.scene) || camera.pickEllipsoid(pt);
+    if (target) {
+      const range = Cesium.Cartesian3.distance(camera.position, target);
+      if (range > 10 && range < 50000000) {
+        return { target, range };
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -55,15 +66,15 @@ export function adjustTiltAndHeading(
   const currentHeading = camera.heading;
   const currentPitch = camera.pitch;
 
-  // Pitch constraints: -88° (nadir straight down) to -12° (oblique 3D horizon)
-  const minPitch = Cesium.Math.toRadians(-88.0);
-  const maxPitch = Cesium.Math.toRadians(-12.0);
+  // Pitch constraints: -89.5° (nadir straight down) to +2.5° (deep ground level to see peaks against the sky)
+  const minPitch = Cesium.Math.toRadians(-89.5);
+  const maxPitch = Cesium.Math.toRadians(2.5);
   const newPitch = Cesium.Math.clamp(currentPitch + deltaPitchRad, minPitch, maxPitch);
   const newHeading = Cesium.Math.zeroToTwoPi(currentHeading + deltaHeadingRad);
 
   const lookData = getCameraLookTarget(viewer);
 
-  if (lookData && lookData.range > 15 && lookData.range < 50000000) {
+  if (lookData && lookData.range > 10 && lookData.range < 50000000) {
     camera.lookAt(lookData.target, new Cesium.HeadingPitchRange(newHeading, newPitch, lookData.range));
     camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
   } else {
@@ -218,12 +229,12 @@ export function setupNavigationPad(viewer: Cesium.Viewer): NavigationPadControls
   btnModePan?.addEventListener('click', () => setNavMode('pan'));
 
   const tiltUp = (continuous = false) => {
-    const delta = continuous ? Cesium.Math.toRadians(0.7) : Cesium.Math.toRadians(6.0);
+    const delta = continuous ? Cesium.Math.toRadians(1.0) : Cesium.Math.toRadians(7.0);
     adjustTiltAndHeading(viewer, delta, 0);
   };
 
   const tiltDown = (continuous = false) => {
-    const delta = continuous ? Cesium.Math.toRadians(0.7) : Cesium.Math.toRadians(6.0);
+    const delta = continuous ? Cesium.Math.toRadians(1.0) : Cesium.Math.toRadians(7.0);
     adjustTiltAndHeading(viewer, -delta, 0);
   };
 

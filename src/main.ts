@@ -1,6 +1,5 @@
 import * as Cesium from 'cesium';
 import { initializeCesiumViewer } from './modules/terrain.ts';
-import { CAMERA_PRESETS } from './config/camera.config.ts';
 import { CustomPointsManager, CustomPoint } from './modules/customPoints.ts';
 import { setupNavigationPad, bindHoldAction } from './modules/navigationPad.ts';
 
@@ -24,73 +23,66 @@ async function bootstrapApp() {
     // 2. Initialize 3D Custom Points System
     const pointsManager = new CustomPointsManager(viewer);
 
-    // 3. Render HUD Overlay (Google Maps Architecture: Slim Rail + Spacious Side Drawer)
+    // 3. Render HUD Overlay: Direct Features Left Rail (Clean, no drawers or unnecessary text)
     const hudContainer = document.getElementById('appHud');
     if (!hudContainer) return;
 
     hudContainer.innerHTML = `
-      <!-- Placement Instruction Banner (Shown when clicking map to drop 3D pin) -->
+      <!-- Pin Placement Prompt Banner -->
       <div class="placement-banner" id="placementBanner" style="display: none;">
         <span class="banner-icon">📍</span>
-        <span class="banner-text">Click anywhere on the map to drop 3D pin</span>
+        <span class="banner-text">Click anywhere on the terrain to drop a 3D pin</span>
         <button class="banner-cancel-btn" id="btnCancelPlacement">Cancel</button>
       </div>
 
-      <!-- Viewshed Placement Banner (Shown when clicking map to place observer) -->
+      <!-- Viewshed Placement Prompt Banner -->
       <div class="placement-banner" id="viewshedBanner" style="display: none;">
         <span class="banner-icon">👁️</span>
-        <span class="banner-text">Click anywhere on the terrain to place observer</span>
+        <span class="banner-text">Click terrain to place observer for line-of-sight analysis</span>
         <button class="banner-cancel-btn" id="btnCancelViewshed">Cancel</button>
       </div>
 
       <!-- ====================================================================
-           1. SLIM LEFT RAIL (Reference Image 2)
+           DIRECT FEATURE LEFT RAIL (Every Feature is Right Here!)
            ==================================================================== -->
       <nav class="gmap-rail hud-interactive" id="gmapRail">
-        <!-- Menu Hamburger Button -->
-        <button class="rail-item" id="railBtnMenu" title="Open Features Menu">
+        <!-- 1. 3D / 2D Perspective Toggle -->
+        <button class="rail-item active" id="railBtn3D" title="Toggle 3D Globe / 2D Map">
           <div class="rail-icon-wrap">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
             </svg>
           </div>
-          <span class="rail-label">Menu</span>
+          <span class="rail-label" id="railLabel3D">3D</span>
         </button>
 
-        <!-- Add Pin Button (Pill highlight matching Image 2 'Ask Maps' shape) -->
-        <button class="rail-item" id="railBtnAddPin" title="Drop a 3D Location Pin on the map">
-          <div class="rail-hero-pill">
-            <span>📍</span>
-          </div>
-          <span class="rail-label">Add Pin</span>
-        </button>
-
-        <!-- Saved Points -->
-        <button class="rail-item" id="railBtnSaved" title="Saved Points & Locations">
+        <!-- 2. Multidirectional Hillshade 30m -->
+        <button class="rail-item" id="railBtnHillshade" title="Toggle Multidirectional Hillshade 30m">
           <div class="rail-icon-wrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              <polygon points="3 20 9 4 15 14 19 8 21 20 3 20"/>
             </svg>
-            <span class="rail-badge" id="railBadgeCount">4</span>
+            <span class="rail-badge-on" id="badgeHillshade" style="display:none;">ON</span>
           </div>
-          <span class="rail-label">Saved</span>
+          <span class="rail-label">Hillshade</span>
         </button>
 
-        <!-- Terrain Layers (Hillshade & Contours) -->
-        <button class="rail-item" id="railBtnLayers" title="Terrain & Analytical Layers">
+        <!-- 3. 2m Elevation Contours -->
+        <button class="rail-item" id="railBtnContours" title="Toggle 2m Topographic Contour Lines">
           <div class="rail-icon-wrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-              <polyline points="2 17 12 22 22 17"/>
-              <polyline points="2 12 12 17 22 12"/>
+              <path d="M3 12 Q7 6 12 12 Q17 18 21 12"/>
+              <path d="M3 7 Q7 3 12 7 Q17 11 21 7" opacity="0.7"/>
+              <path d="M3 17 Q7 11 12 17 Q17 23 21 17" opacity="0.7"/>
             </svg>
+            <span class="rail-badge-on" id="badgeContours" style="display:none;">ON</span>
           </div>
-          <span class="rail-label">Layers</span>
+          <span class="rail-label">Contours</span>
         </button>
 
-        <!-- Viewshed Analysis -->
+        <!-- 4. Line-of-Sight Viewshed Analysis -->
         <button class="rail-item" id="railBtnViewshed" title="Line-of-Sight Viewshed Analysis">
           <div class="rail-icon-wrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -101,21 +93,18 @@ async function bootstrapApp() {
           <span class="rail-label">Viewshed</span>
         </button>
 
-        <!-- 3D Navigation Pad & Tilt -->
-        <button class="rail-item" id="railBtnNav" title="3D Navigation & Tilt Gimbal">
-          <div class="rail-icon-wrap">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
-            </svg>
+        <!-- 5. Drop 3D Location Pin -->
+        <button class="rail-item" id="railBtnAddPin" title="Drop a 3D Location Pin on the terrain">
+          <div class="rail-hero-pill">
+            <span>📍</span>
           </div>
-          <span class="rail-label">3D Nav</span>
+          <span class="rail-label">Add Pin</span>
         </button>
 
         <div class="rail-divider"></div>
 
-        <!-- Solar Lighting Mode -->
-        <button class="rail-item" id="railBtnLighting" title="Switch Sun & Solar Lighting">
+        <!-- 6. Solar Sun & Shadows Cycle -->
+        <button class="rail-item" id="railBtnLighting" title="Click to cycle Sun lighting (Golden / Sunset / Dawn / Noon)">
           <div class="rail-icon-wrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"/>
@@ -125,24 +114,24 @@ async function bootstrapApp() {
               <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
             </svg>
           </div>
-          <span class="rail-label" id="railLightingLabel">Lighting</span>
+          <span class="rail-label" id="railLabelSun">Golden</span>
         </button>
 
-        <!-- Scenic 3D Tour -->
-        <button class="rail-item" id="railBtnTour" title="Cycle Scenic Camera Tour">
+        <!-- 7. Floating 3D Navigation Dock Toggle -->
+        <button class="rail-item active" id="railBtnNav" title="Toggle On-Screen 3D Navigation Pad">
           <div class="rail-icon-wrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="23 7 16 12 23 17 23 7"/>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
             </svg>
           </div>
-          <span class="rail-label" id="railTourLabel">Tour</span>
+          <span class="rail-label">Navigation</span>
         </button>
 
         <div class="rail-spacer"></div>
         <div class="rail-divider"></div>
 
-        <!-- Reset Camera View -->
+        <!-- 8. Reset Camera View -->
         <button class="rail-item" id="railBtnReset" title="Re-center camera on the White Desert">
           <div class="rail-icon-wrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -155,311 +144,62 @@ async function bootstrapApp() {
       </nav>
 
       <!-- ====================================================================
-           2. SLIDE-OUT DRAWER / MENU (Reference Image 1)
+           FLOATING ZOOM CONTROLS (Top-Right Corner)
            ==================================================================== -->
-      <aside class="gmap-drawer hud-interactive drawer-closed" id="gmapDrawer">
-        <!-- Header -->
-        <div class="drawer-header-row">
-          <div class="drawer-brand">
-            <span class="gmap-logo-text">
-              <span class="g-blue">Kutch</span>
-              <span class="g-red">3D</span>
-              <span class="g-yellow">Desert</span>
-              <span class="g-green">Map</span>
-            </span>
-            <span class="drawer-sub">White Rann of Kutch • Dhordo, Gujarat</span>
-          </div>
-          <button class="drawer-close-btn" id="btnDrawerClose" title="Close drawer">&times;</button>
-        </div>
-
-        <!-- Scrollable Content -->
-        <div class="drawer-content">
-          <!-- Toggle Row: Show On-Screen Nav Pad (matching 'Show side bar' switch in Image 1) -->
-          <div class="drawer-toggle-row">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="9"/>
-                  <polygon points="12 2 15 9 12 7 9 9 12 2"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">On-Screen 3D Gimbal</span>
-                <span class="drawer-row-desc">Show floating navigation dock on map</span>
-              </div>
-            </div>
-            <label class="gmap-switch">
-              <input type="checkbox" id="switchNavDock" checked />
-              <span class="gmap-slider"></span>
-            </label>
-          </div>
-
-          <!-- Hero Action Button (matching 'Ask Maps' in Image 1) -->
-          <div class="drawer-hero-container">
-            <button class="drawer-hero-btn" id="drawerBtnAddPin">
-              <span class="drawer-hero-icon">📍</span>
-              <span id="drawerAddPinLabel">Drop 3D Location Pin</span>
-            </button>
-          </div>
-
-          <!-- Saved Points Action Row -->
-          <button class="drawer-action-row" id="drawerRowSaved">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">Saved Locations</span>
-                <span class="drawer-row-desc">Custom pins & cultural landmarks</span>
-              </div>
-            </div>
-            <span class="drawer-badge" id="drawerBadgeSaved">4 saved</span>
-          </button>
-          <!-- Collapsible Saved List -->
-          <div class="drawer-saved-collapsible" id="drawerSavedList" style="display: none;">
-            <div class="points-list" id="pointsListContainer"></div>
-          </div>
-
-          <div class="drawer-divider"></div>
-
-          <!-- MAP & TERRAIN LAYERS SECTION -->
-          <div class="drawer-section-title" id="sectionLayersTitle">MAP & TERRAIN LAYERS</div>
-
-          <!-- Multidirectional Hillshade Toggle -->
-          <div class="drawer-toggle-row">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="3 20 9 4 15 14 19 8 21 20 3 20"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">Multidirectional Hillshade</span>
-                <span class="drawer-row-desc">Copernicus 30m terrain relief</span>
-              </div>
-            </div>
-            <label class="gmap-switch">
-              <input type="checkbox" id="switchHillshade" />
-              <span class="gmap-slider"></span>
-            </label>
-          </div>
-
-          <!-- 2m Contour Lines Toggle -->
-          <div class="drawer-toggle-row">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M3 12 Q7 6 12 12 Q17 18 21 12"/>
-                  <path d="M3 7 Q7 3 12 7 Q17 11 21 7" opacity="0.6"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">2m Contour Lines</span>
-                <span class="drawer-row-desc">Hypsometric topographic elevation</span>
-              </div>
-            </div>
-            <label class="gmap-switch">
-              <input type="checkbox" id="switchContours" />
-              <span class="gmap-slider"></span>
-            </label>
-          </div>
-
-          <!-- Viewshed Analysis Toggle -->
-          <div class="drawer-toggle-row">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">Viewshed Analysis</span>
-                <span class="drawer-row-desc" id="drawerVsDesc">Line-of-sight visual coverage</span>
-              </div>
-            </div>
-            <label class="gmap-switch">
-              <input type="checkbox" id="switchViewshed" />
-              <span class="gmap-slider"></span>
-            </label>
-          </div>
-
-          <div class="drawer-divider"></div>
-
-          <!-- VIEW PROJECTION SECTION -->
-          <div class="drawer-section-title">VIEW PROJECTION</div>
-          <div class="view-mode-container">
-            <div class="view-mode-pills" id="viewModeGroup">
-              <button class="view-pill active" data-mode="3D" id="btnMode3D">3D Globe</button>
-              <button class="view-pill" data-mode="COLUMBUS" id="btnModeColumbus">2.5D Columbus</button>
-              <button class="view-pill" data-mode="2D" id="btnMode2D">2D Map</button>
-            </div>
-          </div>
-
-          <div class="drawer-divider"></div>
-
-          <!-- ENVIRONMENT & TOUR SECTION -->
-          <div class="drawer-section-title">ENVIRONMENT & TOUR</div>
-
-          <!-- Solar Lighting -->
-          <button class="drawer-action-row" id="drawerRowLighting">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="5"/>
-                  <line x1="12" y1="1" x2="12" y2="3"/>
-                  <line x1="12" y1="21" x2="12" y2="23"/>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">Solar Lighting</span>
-                <span class="drawer-row-desc">Simulate sun angle & shadows</span>
-              </div>
-            </div>
-            <span class="drawer-badge" id="lightingBadge">Golden Hour</span>
-          </button>
-
-          <!-- Scenic 3D Tour -->
-          <button class="drawer-action-row" id="drawerRowTour">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="23 7 16 12 23 17 23 7"/>
-                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">Scenic 3D Tour</span>
-                <span class="drawer-row-desc">Fly to viewpoints across Dhordo</span>
-              </div>
-            </div>
-            <span class="drawer-badge" id="tourBadge">White Desert ›</span>
-          </button>
-
-          <!-- Reset Camera -->
-          <button class="drawer-action-row" id="drawerRowReset">
-            <div class="drawer-row-left">
-              <div class="drawer-row-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                  <path d="M3 3v5h5"/>
-                </svg>
-              </div>
-              <div class="drawer-row-text">
-                <span class="drawer-row-title">Reset Camera</span>
-                <span class="drawer-row-desc">Return to Dhordo study area</span>
-              </div>
-            </div>
-            <span class="drawer-row-arrow">›</span>
-          </button>
-
-          <div class="drawer-divider"></div>
-
-          <!-- 3D NAVIGATION & TILT SECTION -->
-          <div class="drawer-section-title" id="sectionNavTitle">3D CAMERA GIMBAL & TILT</div>
-          <div class="drawer-nav-card">
-            <div class="nav-mode-switcher">
-              <button class="nav-mode-pill active" id="btnNavModeTilt">3D Tilt & Rotate</button>
-              <button class="nav-mode-pill" id="btnNavModePan">Pan Map</button>
-            </div>
-            <div class="nav-controls-layout">
-              <div class="dpad-cross-container">
-                <button class="dpad-btn dpad-up" id="btnDpadUp" title="Tilt Up / Pan forward">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-                </button>
-                <button class="dpad-btn dpad-left" id="btnDpadLeft" title="Rotate Left / Pan left">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <button class="dpad-btn dpad-center" id="btnDpadCenter" title="Reset North & 3D tilt">
-                  🧭
-                </button>
-                <button class="dpad-btn dpad-right" id="btnDpadRight" title="Rotate Right / Pan right">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-                <button class="dpad-btn dpad-down" id="btnDpadDown" title="Tilt Down / Pan backward">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-              </div>
-              <div class="nav-quick-side">
-                <div class="nav-zoom-group">
-                  <button class="nav-zoom-btn" id="btnZoomIn" title="Zoom In (+)">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Zoom +</span>
-                  </button>
-                  <button class="nav-zoom-btn" id="btnZoomOut" title="Zoom Out (−)">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Zoom −</span>
-                  </button>
-                </div>
-                <div class="nav-angle-group">
-                  <button class="dpad-pill-btn" id="btnQuickTilt3D" title="Tilt into 3D horizon view">
-                    <span>📐 3D Tilt</span>
-                  </button>
-                  <button class="dpad-pill-btn" id="btnQuickTopDown" title="Look straight down (90° Top-Down)">
-                    <span>🗺️ Nadir</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="drawer-divider"></div>
-
-          <!-- SPATIAL TELEMETRY SECTION -->
-          <div class="drawer-section-title">SPATIAL TELEMETRY</div>
-          <div style="padding: 0 18px 16px;">
-            <div class="telemetry-grid">
-              <div class="telem-cell"><span class="telem-label">Latitude</span><span class="telem-val" id="telemetryLat">23.8450° N</span></div>
-              <div class="telem-cell"><span class="telem-label">Longitude</span><span class="telem-val" id="telemetryLon">69.5200° E</span></div>
-              <div class="telem-cell"><span class="telem-label">Altitude</span><span class="telem-val" id="telemetryAlt">2,400 m</span></div>
-              <div class="telem-cell"><span class="telem-label">Heading</span><span class="telem-val" id="telemetryHeading">0° N</span></div>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <div class="hud-zoom-control hud-interactive" id="floatingZoomControl">
+        <button class="zoom-ctrl-btn" id="btnZoomIn" title="Zoom In (+)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <div class="zoom-ctrl-divider"></div>
+        <button class="zoom-ctrl-btn" id="btnZoomOut" title="Zoom Out (−)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+      </div>
 
       <!-- ====================================================================
-           3. FLOATING ON-SCREEN 3D NAV DOCK (Positioned bottom-left next to rail)
+           FLOATING ON-SCREEN 3D NAVIGATION DOCK (Bottom-Right Corner)
            ==================================================================== -->
       <div class="hud-nav-dock hud-interactive" id="floatingNavDock">
-        <div class="dpad-cross-container">
-          <button class="dpad-btn dpad-up" id="btnFloatDpadUp" title="Tilt Up / Pan forward">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-          </button>
-          <button class="dpad-btn dpad-left" id="btnFloatDpadLeft" title="Rotate Left / Pan left">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="dpad-btn dpad-center" id="btnFloatDpadCenter" title="Reset North & 3D tilt">
-            🧭
-          </button>
-          <button class="dpad-btn dpad-right" id="btnFloatDpadRight" title="Rotate Right / Pan right">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button class="dpad-btn dpad-down" id="btnFloatDpadDown" title="Tilt Down / Pan backward">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="dock-header-bar">
+          <div class="dock-title-wrap">
+            <span class="dock-title">Navigation</span>
+          </div>
+          <button class="dock-minimize-btn" id="btnDockMinimize" title="Minimize / Expand Navigation">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
         </div>
-        <div class="nav-zoom-group">
-          <button class="nav-zoom-btn" id="btnFloatZoomIn" title="Zoom In (+)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>+</span>
-          </button>
-          <button class="nav-zoom-btn" id="btnFloatZoomOut" title="Zoom Out (−)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>−</span>
-          </button>
+        <div class="dock-body" id="dockBody">
+          <div class="dpad-cross-container">
+            <button class="dpad-btn dpad-up" id="btnDpadUp" title="Tilt Up towards horizon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            </button>
+            <button class="dpad-btn dpad-left" id="btnDpadLeft" title="Rotate Left">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="dpad-btn dpad-center" id="btnDpadCenter" title="Click to Reset North (0°) & 3D Tilt">
+              <span class="compass-dial" id="compassNeedle">🧭</span>
+            </button>
+            <button class="dpad-btn dpad-right" id="btnDpadRight" title="Rotate Right">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="dpad-btn dpad-down" id="btnDpadDown" title="Tilt Down towards ground">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Viewshed HUD Legend (Floating Pill in Bottom-Right) -->
+      <!-- Viewshed HUD Legend (Bottom-Right Pill) -->
       <div class="viewshed-hud-legend" id="viewshedHudLegend" style="display: none;" title="Viewshed Legend: Green = Visible, Red = Blocked">
         <span class="vs-legend-title">Viewshed:</span>
         <span class="vs-legend-item"><span class="vs-legend-swatch vs-visible"></span> Visible</span>
         <span class="vs-legend-item"><span class="vs-legend-swatch vs-blocked"></span> Blocked</span>
+        <button class="vs-clear-btn" id="btnClearViewshed" title="Clear viewshed">Clear</button>
       </div>
 
       <!-- Point Details Floating Card (Shown when a 3D pin is clicked) -->
@@ -536,239 +276,112 @@ async function bootstrapApp() {
         </div>
       </div>
 
-      <!-- Viewshed Observer Height Modal -->
-      <div class="modal-overlay" id="viewshedModalOverlay" style="display: none;">
-        <div class="modal-dialog" id="viewshedModal">
-          <div class="modal-header">
-            <h3 class="modal-title">
-              <span>👁️</span> Viewshed Analysis
-            </h3>
-            <button class="modal-close-btn" id="btnCloseViewshedModal">&times;</button>
-          </div>
-
-          <p style="color:#5f6368; font-size:0.82rem; margin:0 0 1rem 0; line-height:1.5;">
-            Observer placed. Computing line-of-sight analysis&hellip;<br/>
-            <strong style="color:#00c853;">Green</strong> = visible terrain &nbsp;&bull;&nbsp;
-            <strong style="color:#d50000;">Red</strong> = occluded terrain
-          </p>
-
-          <div class="form-field">
-            <label class="form-label">Observer Height Above Ground</label>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="range" id="viewshedHeightSlider" min="1" max="30" step="0.5" value="1.8"
-                style="flex:1; accent-color:#1a73e8;" />
-              <span id="viewshedHeightValue" style="color:#202124; font-size:0.85rem; font-weight:600; min-width:3rem;">1.8 m</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-top:0.35rem;">
-              <button type="button" class="chip-btn" id="vsPresetPerson" style="font-size:0.7rem;">Person (1.8m)</button>
-              <button type="button" class="chip-btn" id="vsPresetTower" style="font-size:0.7rem;">Tower (10m)</button>
-              <button type="button" class="chip-btn" id="vsPresetMast" style="font-size:0.7rem;">Mast (25m)</button>
-            </div>
-          </div>
-
-          <div class="modal-actions" style="margin-top:0.75rem;">
-            <button type="button" class="btn-secondary" id="btnClearViewshed">Clear Analysis</button>
-            <button type="button" class="btn-primary" id="btnRecomputeViewshed">Recompute</button>
-          </div>
+      <!-- Spatial Telemetry Status Bar (GIS Standard at Bottom) -->
+      <div class="hud-telemetry-bar hud-interactive" id="telemetryHudBar">
+        <div class="telem-item">
+          <span class="telem-icon">📍</span>
+          <span id="telemetryCoords">23.8450° N, 69.5200° E</span>
+        </div>
+        <div class="telem-divider"></div>
+        <div class="telem-item">
+          <span class="telem-icon">⛰️</span>
+          <span id="telemetryAlt">2,400 m</span>
+        </div>
+        <div class="telem-divider"></div>
+        <div class="telem-item">
+          <span class="telem-icon">🧭</span>
+          <span id="telemetryHeading">0° N</span>
+        </div>
+        <div class="telem-divider"></div>
+        <div class="telem-item">
+          <span class="telem-icon">🌐</span>
+          <span id="telemetryMode">3D Globe</span>
         </div>
       </div>
     `;
 
     // =========================================================================
-    // 4. RAIL & DRAWER TOGGLE LOGIC
+    // FEATURE 1: 3D GLOBE / 2D MAP TOGGLE
     // =========================================================================
-    const gmapDrawer = document.getElementById('gmapDrawer');
-    const railBtnMenu = document.getElementById('railBtnMenu');
-    const btnDrawerClose = document.getElementById('btnDrawerClose');
+    const railBtn3D = document.getElementById('railBtn3D');
+    const railLabel3D = document.getElementById('railLabel3D');
+    let is3DMode = true;
 
-    const toggleDrawer = (open?: boolean) => {
-      if (!gmapDrawer) return;
-      const isCurrentlyClosed = gmapDrawer.classList.contains('drawer-closed');
-      const shouldOpen = open !== undefined ? open : isCurrentlyClosed;
-      gmapDrawer.classList.toggle('drawer-closed', !shouldOpen);
-      railBtnMenu?.classList.toggle('active', shouldOpen);
+    const toggle3DMode = () => {
+      is3DMode = !is3DMode;
+      setSceneMode(is3DMode ? '3D' : '2D');
+      railBtn3D?.classList.toggle('active', is3DMode);
+      if (railLabel3D) railLabel3D.textContent = is3DMode ? '3D' : '2D';
     };
 
-    railBtnMenu?.addEventListener('click', () => toggleDrawer());
-    btnDrawerClose?.addEventListener('click', () => toggleDrawer(false));
+    railBtn3D?.addEventListener('click', toggle3DMode);
 
-    // Floating On-Screen Nav Dock toggle switch
-    const switchNavDock = document.getElementById('switchNavDock') as HTMLInputElement | null;
-    const floatingNavDock = document.getElementById('floatingNavDock');
-    switchNavDock?.addEventListener('change', () => {
-      if (floatingNavDock) {
-        floatingNavDock.classList.toggle('dock-hidden', !switchNavDock.checked);
+    viewer.scene.morphComplete.addEventListener((_transitioner, _prev, currentMode) => {
+      is3DMode = (currentMode === Cesium.SceneMode.SCENE3D || currentMode === Cesium.SceneMode.COLUMBUS_VIEW);
+      railBtn3D?.classList.toggle('active', is3DMode);
+      if (railLabel3D) railLabel3D.textContent = is3DMode ? '3D' : '2D';
+      const telemetryMode = document.getElementById('telemetryMode');
+      if (telemetryMode) {
+        telemetryMode.textContent = currentMode === Cesium.SceneMode.SCENE2D ? '2D Topo' : '3D Globe';
       }
     });
 
     // =========================================================================
-    // 5. VIEW MODES (3D Globe / 2.5D Columbus / 2D Map)
+    // FEATURE 2: MULTIDIRECTIONAL HILLSHADE 30M TOGGLE
     // =========================================================================
-    const modeButtons = document.querySelectorAll<HTMLButtonElement>('#viewModeGroup button');
+    const railBtnHillshade = document.getElementById('railBtnHillshade');
+    const badgeHillshade = document.getElementById('badgeHillshade');
+    let isHillshadeActive = false;
 
-    const updateActiveModeButton = (mode: Cesium.SceneMode) => {
-      let targetAttr = '3D';
-      if (mode === Cesium.SceneMode.SCENE2D) targetAttr = '2D';
-      else if (mode === Cesium.SceneMode.COLUMBUS_VIEW) targetAttr = 'COLUMBUS';
-
-      modeButtons.forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-mode') === targetAttr);
-      });
-    };
-
-    modeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mode = btn.getAttribute('data-mode') as '3D' | 'COLUMBUS' | '2D';
-        modeButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        setSceneMode(mode);
-      });
-    });
-
-    viewer.scene.morphComplete.addEventListener((_transitioner, _prev, currentMode) => {
-      updateActiveModeButton(currentMode);
+    railBtnHillshade?.addEventListener('click', () => {
+      isHillshadeActive = !isHillshadeActive;
+      toggleHillshadeLayer(isHillshadeActive);
+      railBtnHillshade.classList.toggle('active', isHillshadeActive);
+      if (badgeHillshade) badgeHillshade.style.display = isHillshadeActive ? 'inline-block' : 'none';
     });
 
     // =========================================================================
-    // 6. SCENIC CAMERA TOUR
+    // FEATURE 3: 2M TOPOGRAPHIC CONTOUR LINES TOGGLE
     // =========================================================================
-    let currentPresetIndex = 0;
-    const railBtnTour = document.getElementById('railBtnTour');
-    const drawerRowTour = document.getElementById('drawerRowTour');
-    const tourBadge = document.getElementById('tourBadge');
-    const railTourLabel = document.getElementById('railTourLabel');
+    const railBtnContours = document.getElementById('railBtnContours');
+    const badgeContours = document.getElementById('badgeContours');
+    let isContoursActive = false;
 
-    const advanceTour = () => {
-      currentPresetIndex = (currentPresetIndex + 1) % CAMERA_PRESETS.length;
-      const nextPreset = CAMERA_PRESETS[currentPresetIndex];
-      const shortName = nextPreset.label.split(' ')[0];
-      if (tourBadge) tourBadge.textContent = `${shortName} ›`;
-      if (railTourLabel) railTourLabel.textContent = shortName;
-      flyToStudyArea(nextPreset.id);
-    };
-
-    railBtnTour?.addEventListener('click', advanceTour);
-    drawerRowTour?.addEventListener('click', advanceTour);
-
-    // =========================================================================
-    // 7. SOLAR LIGHTING PRESETS
-    // =========================================================================
-    const lightingModes: Array<'golden' | 'noon' | 'sunset'> = ['golden', 'noon', 'sunset'];
-    const lightingLabels = ['Golden Hour', 'High Noon', 'Sunset'];
-    let currentLightingIndex = 0;
-    const railBtnLighting = document.getElementById('railBtnLighting');
-    const drawerRowLighting = document.getElementById('drawerRowLighting');
-    const lightingBadge = document.getElementById('lightingBadge');
-    const railLightingLabel = document.getElementById('railLightingLabel');
-
-    const cycleLighting = () => {
-      currentLightingIndex = (currentLightingIndex + 1) % lightingModes.length;
-      const nextMode = lightingModes[currentLightingIndex];
-      const label = lightingLabels[currentLightingIndex];
-      if (lightingBadge) lightingBadge.textContent = label;
-      if (railLightingLabel) railLightingLabel.textContent = label.split(' ')[0];
-      setLightingPreset(nextMode);
-    };
-
-    railBtnLighting?.addEventListener('click', cycleLighting);
-    drawerRowLighting?.addEventListener('click', cycleLighting);
-
-    // =========================================================================
-    // 8. 3D NAVIGATION CONTROLLER (Embedded D-Pad & Floating Dock)
-    // =========================================================================
-    const navControls = setupNavigationPad(viewer);
-
-    // Bind floating dock duplicate controls
-    bindHoldAction(document.getElementById('btnFloatDpadUp'), (c) => {
-      if (navControls.getNavMode() === 'pan') navControls.pan('up', c);
-      else navControls.tiltUp(c);
-    });
-    bindHoldAction(document.getElementById('btnFloatDpadDown'), (c) => {
-      if (navControls.getNavMode() === 'pan') navControls.pan('down', c);
-      else navControls.tiltDown(c);
-    });
-    bindHoldAction(document.getElementById('btnFloatDpadLeft'), (c) => {
-      if (navControls.getNavMode() === 'pan') navControls.pan('left', c);
-      else navControls.rotateLeft(c);
-    });
-    bindHoldAction(document.getElementById('btnFloatDpadRight'), (c) => {
-      if (navControls.getNavMode() === 'pan') navControls.pan('right', c);
-      else navControls.rotateRight(c);
-    });
-    document.getElementById('btnFloatDpadCenter')?.addEventListener('click', () => {
-      navControls.reset3DNorth();
-    });
-    bindHoldAction(document.getElementById('btnFloatZoomIn'), () => zoomIn());
-    bindHoldAction(document.getElementById('btnFloatZoomOut'), () => zoomOut());
-
-    // Drawer zoom buttons
-    bindHoldAction(document.getElementById('btnZoomIn'), () => zoomIn());
-    bindHoldAction(document.getElementById('btnZoomOut'), () => zoomOut());
-
-    // Rail 3D Nav item: open drawer and scroll to Nav section
-    const railBtnNav = document.getElementById('railBtnNav');
-    railBtnNav?.addEventListener('click', () => {
-      toggleDrawer(true);
-      document.getElementById('sectionNavTitle')?.scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Reset View button (Rail & Drawer)
-    const resetView = () => {
-      currentPresetIndex = 0;
-      if (tourBadge) tourBadge.textContent = 'White Desert ›';
-      if (railTourLabel) railTourLabel.textContent = 'Tour';
-      flyToStudyArea('default');
-    };
-    document.getElementById('railBtnReset')?.addEventListener('click', resetView);
-    document.getElementById('drawerRowReset')?.addEventListener('click', resetView);
-
-    // =========================================================================
-    // 9. ANALYTICAL TERRAIN LAYERS (Hillshade & 2m Contours)
-    // =========================================================================
-    const switchHillshade = document.getElementById('switchHillshade') as HTMLInputElement | null;
-    switchHillshade?.addEventListener('change', () => {
-      toggleHillshadeLayer(switchHillshade.checked);
-    });
-
-    const switchContours = document.getElementById('switchContours') as HTMLInputElement | null;
-    switchContours?.addEventListener('change', () => {
-      toggleContourLayer(switchContours.checked);
-    });
-
-    // Rail Layers item: open drawer and scroll to Layers section
-    const railBtnLayers = document.getElementById('railBtnLayers');
-    railBtnLayers?.addEventListener('click', () => {
-      toggleDrawer(true);
-      document.getElementById('sectionLayersTitle')?.scrollIntoView({ behavior: 'smooth' });
+    railBtnContours?.addEventListener('click', () => {
+      isContoursActive = !isContoursActive;
+      toggleContourLayer(isContoursActive);
+      railBtnContours.classList.toggle('active', isContoursActive);
+      if (badgeContours) badgeContours.style.display = isContoursActive ? 'inline-block' : 'none';
     });
 
     // =========================================================================
-    // 10. VIEWSHED ANALYSIS
+    // FEATURE 4: LINE-OF-SIGHT VIEWSHED ANALYSIS
     // =========================================================================
     let isViewshedPlacementMode = false;
-    const railBtnViewshed    = document.getElementById('railBtnViewshed');
-    const switchViewshed     = document.getElementById('switchViewshed') as HTMLInputElement | null;
-    const viewshedBanner     = document.getElementById('viewshedBanner');
-    const btnCancelViewshed  = document.getElementById('btnCancelViewshed');
-    const drawerVsDesc       = document.getElementById('drawerVsDesc');
-    const viewshedModal      = document.getElementById('viewshedModalOverlay');
-    const btnCloseVsModal    = document.getElementById('btnCloseViewshedModal');
-    const btnClearViewshed   = document.getElementById('btnClearViewshed');
-    const btnRecompute       = document.getElementById('btnRecomputeViewshed');
-    const vsHeightSlider     = document.getElementById('viewshedHeightSlider') as HTMLInputElement;
-    const vsHeightValue      = document.getElementById('viewshedHeightValue');
+    const railBtnViewshed   = document.getElementById('railBtnViewshed');
+    const viewshedBanner    = document.getElementById('viewshedBanner');
+    const btnCancelViewshed = document.getElementById('btnCancelViewshed');
+    const vsHudLegend       = document.getElementById('viewshedHudLegend');
+    const btnClearViewshed  = document.getElementById('btnClearViewshed');
 
     const viewshedHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    let vsHandlerActive = false;
+    let vsHandlerBound = false;
 
-    const enterViewshedPlacement = () => {
+    const exitViewshed = () => {
+      isViewshedPlacementMode = false;
+      viewshedManager.clear();
+      if (viewshedBanner) viewshedBanner.style.display = 'none';
+      if (vsHudLegend)    vsHudLegend.style.display = 'none';
+      railBtnViewshed?.classList.remove('active');
+    };
+
+    const enterViewshed = () => {
       isViewshedPlacementMode = true;
-      toggleDrawer(false); // Close drawer so the user can easily click map
       if (viewshedBanner) viewshedBanner.style.display = 'flex';
       railBtnViewshed?.classList.add('active');
 
-      if (!vsHandlerActive) {
-        vsHandlerActive = true;
+      if (!vsHandlerBound) {
+        vsHandlerBound = true;
         viewshedHandler.setInputAction(async (click: { position: Cesium.Cartesian2 }) => {
           if (!isViewshedPlacementMode) return;
 
@@ -788,93 +401,32 @@ async function bootstrapApp() {
           const lat = Cesium.Math.toDegrees(carto.latitude);
           const lon = Cesium.Math.toDegrees(carto.longitude);
 
-          // Exit placement mode
           isViewshedPlacementMode = false;
           if (viewshedBanner) viewshedBanner.style.display = 'none';
-          if (switchViewshed) switchViewshed.checked = true;
-          if (drawerVsDesc) drawerVsDesc.textContent = 'Active: Line-of-sight visual coverage';
 
-          // Run viewshed analysis
           await viewshedManager.setObserver(lat, lon);
           await viewshedManager.enable();
 
-          if (viewshedModal) viewshedModal.style.display = 'flex';
-          const vsHudLegend = document.getElementById('viewshedHudLegend');
           if (vsHudLegend) vsHudLegend.style.display = 'inline-flex';
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       }
     };
 
-    const exitViewshed = () => {
-      isViewshedPlacementMode = false;
-      viewshedManager.clear();
-      if (viewshedBanner)  viewshedBanner.style.display = 'none';
-      if (viewshedModal)   viewshedModal.style.display = 'none';
-      const vsHudLegend = document.getElementById('viewshedHudLegend');
-      if (vsHudLegend)     vsHudLegend.style.display = 'none';
-      railBtnViewshed?.classList.remove('active');
-      if (switchViewshed) switchViewshed.checked = false;
-      if (drawerVsDesc) drawerVsDesc.textContent = 'Line-of-sight visual coverage';
-    };
-
     railBtnViewshed?.addEventListener('click', () => {
-      if (viewshedManager.isEnabled()) {
-        exitViewshed();
-      } else if (isViewshedPlacementMode) {
+      if (viewshedManager.isEnabled() || isViewshedPlacementMode) {
         exitViewshed();
       } else {
-        enterViewshedPlacement();
+        enterViewshed();
       }
     });
 
-    switchViewshed?.addEventListener('change', () => {
-      if (switchViewshed.checked) {
-        enterViewshedPlacement();
-      } else {
-        exitViewshed();
-      }
-    });
-
-    btnCancelViewshed?.addEventListener('click', () => {
-      exitViewshed();
-    });
-
-    btnCloseVsModal?.addEventListener('click', () => {
-      if (viewshedModal) viewshedModal.style.display = 'none';
-    });
-
-    btnClearViewshed?.addEventListener('click', () => {
-      exitViewshed();
-    });
-
-    btnRecompute?.addEventListener('click', async () => {
-      await viewshedManager.enable();
-    });
-
-    // Observer height slider
-    vsHeightSlider?.addEventListener('input', () => {
-      const h = parseFloat(vsHeightSlider.value);
-      if (vsHeightValue) vsHeightValue.textContent = `${h.toFixed(1)} m`;
-    });
-    vsHeightSlider?.addEventListener('change', async () => {
-      const h = parseFloat(vsHeightSlider.value);
-      await viewshedManager.updateObserverHeight(h);
-    });
-
-    const setVsHeight = async (h: number) => {
-      if (vsHeightSlider) vsHeightSlider.value = h.toString();
-      if (vsHeightValue)  vsHeightValue.textContent = `${h.toFixed(1)} m`;
-      await viewshedManager.updateObserverHeight(h);
-    };
-    document.getElementById('vsPresetPerson')?.addEventListener('click', () => setVsHeight(1.8));
-    document.getElementById('vsPresetTower')?.addEventListener('click',  () => setVsHeight(10));
-    document.getElementById('vsPresetMast')?.addEventListener('click',   () => setVsHeight(25));
+    btnCancelViewshed?.addEventListener('click', exitViewshed);
+    btnClearViewshed?.addEventListener('click', exitViewshed);
 
     // =========================================================================
-    // 11. 3D CUSTOM POINTS (Add Pin & Saved Points List)
+    // FEATURE 5: 3D LOCATION PIN DROPPING
     // =========================================================================
     const railBtnAddPin = document.getElementById('railBtnAddPin');
-    const drawerBtnAddPin = document.getElementById('drawerBtnAddPin');
     const placementBanner = document.getElementById('placementBanner');
     const btnCancelPlacement = document.getElementById('btnCancelPlacement');
 
@@ -897,13 +449,9 @@ async function bootstrapApp() {
       });
     });
 
-    const startAddPin = () => {
-      toggleDrawer(false); // Close drawer to reveal full 3D map
+    railBtnAddPin?.addEventListener('click', () => {
       pointsManager.setAddMode(true);
-    };
-
-    railBtnAddPin?.addEventListener('click', startAddPin);
-    drawerBtnAddPin?.addEventListener('click', startAddPin);
+    });
 
     btnCancelPlacement?.addEventListener('click', () => {
       pointsManager.setAddMode(false);
@@ -912,7 +460,6 @@ async function bootstrapApp() {
     pointsManager.onAddModeChanged((isActive) => {
       if (placementBanner) placementBanner.style.display = isActive ? 'flex' : 'none';
       railBtnAddPin?.classList.toggle('active', isActive);
-      drawerBtnAddPin?.classList.toggle('active-mode', isActive);
     });
 
     pointsManager.onMapClickForNewPoint((lat, lon) => {
@@ -950,7 +497,7 @@ async function bootstrapApp() {
       closeModal();
     });
 
-    // Point Details Floating Card
+    // Point Details Floating Card (when a 3D pin on map is clicked)
     let selectedPointId: string | null = null;
     const pointDetailCard = document.getElementById('pointDetailCard');
     const cardCategoryBadge = document.getElementById('cardCategoryBadge');
@@ -993,115 +540,64 @@ async function bootstrapApp() {
       if (pointDetailCard) pointDetailCard.style.display = 'flex';
     });
 
-    // Saved Locations: Expandable List in Drawer + Rail Badge
-    const railBtnSaved = document.getElementById('railBtnSaved');
-    const drawerRowSaved = document.getElementById('drawerRowSaved');
-    const drawerSavedList = document.getElementById('drawerSavedList');
-    const railBadgeCount = document.getElementById('railBadgeCount');
-    const drawerBadgeSaved = document.getElementById('drawerBadgeSaved');
-    const pointsListContainer = document.getElementById('pointsListContainer');
+    // =========================================================================
+    // FEATURE 6: SOLAR SUN & LIGHTING CYCLE (1-Click Direct Cycle)
+    // =========================================================================
+    const solarPresets: Array<{ id: 'golden' | 'sunset' | 'sunrise' | 'noon'; label: string }> = [
+      { id: 'golden',  label: 'Golden' },
+      { id: 'sunset',  label: 'Sunset' },
+      { id: 'sunrise', label: 'Dawn' },
+      { id: 'noon',    label: 'Noon' }
+    ];
+    let solarIndex = 0;
+    const railBtnLighting = document.getElementById('railBtnLighting');
+    const railLabelSun = document.getElementById('railLabelSun');
 
-    const toggleSavedList = (expand?: boolean) => {
-      if (!drawerSavedList) return;
-      const isHidden = drawerSavedList.style.display === 'none';
-      const shouldShow = expand !== undefined ? expand : isHidden;
-      drawerSavedList.style.display = shouldShow ? 'flex' : 'none';
+    railBtnLighting?.addEventListener('click', () => {
+      solarIndex = (solarIndex + 1) % solarPresets.length;
+      const current = solarPresets[solarIndex];
+      setLightingPreset(current.id);
+      if (railLabelSun) railLabelSun.textContent = current.label;
+    });
+
+    // =========================================================================
+    // FEATURE 7: FLOATING 3D NAVIGATION DOCK TOGGLE
+    // =========================================================================
+    const floatingNavDock = document.getElementById('floatingNavDock');
+    const btnDockMinimize = document.getElementById('btnDockMinimize');
+    const railBtnNav = document.getElementById('railBtnNav');
+
+    setupNavigationPad(viewer);
+
+    bindHoldAction(document.getElementById('btnZoomIn'), () => zoomIn());
+    bindHoldAction(document.getElementById('btnZoomOut'), () => zoomOut());
+
+    btnDockMinimize?.addEventListener('click', () => {
+      floatingNavDock?.classList.toggle('dock-collapsed');
+    });
+
+    railBtnNav?.addEventListener('click', () => {
+      if (!floatingNavDock) return;
+      const isHidden = floatingNavDock.classList.contains('dock-hidden');
+      floatingNavDock.classList.toggle('dock-hidden', !isHidden);
+      railBtnNav.classList.toggle('active', isHidden);
+    });
+
+    // =========================================================================
+    // FEATURE 8: RESET CAMERA VIEW
+    // =========================================================================
+    const resetView = () => {
+      flyToStudyArea('default', 2.0);
     };
-
-    drawerRowSaved?.addEventListener('click', () => toggleSavedList());
-
-    railBtnSaved?.addEventListener('click', () => {
-      toggleDrawer(true);
-      toggleSavedList(true);
-      drawerRowSaved?.scrollIntoView({ behavior: 'smooth' });
-    });
-
-    const updatePointsDrawerList = (points: CustomPoint[]) => {
-      const countStr = points.length.toString();
-      if (railBadgeCount) railBadgeCount.textContent = countStr;
-      if (drawerBadgeSaved) drawerBadgeSaved.textContent = `${countStr} saved`;
-      if (!pointsListContainer) return;
-
-      if (points.length === 0) {
-        pointsListContainer.innerHTML = `<div style="padding: 12px; color: #70757a; font-size: 0.8rem; text-align: center;">No points saved yet. Click "+ Drop 3D Location Pin" to save one!</div>`;
-        return;
-      }
-
-      pointsListContainer.innerHTML = points.map(p => `
-        <div class="point-item" data-id="${p.id}">
-          <div class="point-item-info">
-            <span class="point-item-icon">📍</span>
-            <div class="point-item-text">
-              <span class="point-item-name">${p.name}</span>
-              <span class="point-item-sub">${p.latitude.toFixed(3)}° N, ${p.longitude.toFixed(3)}° E</span>
-            </div>
-          </div>
-          <button class="point-item-del" data-delete-id="${p.id}" title="Delete">&times;</button>
-        </div>
-      `).join('');
-
-      pointsListContainer.querySelectorAll<HTMLDivElement>('.point-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          if ((e.target as HTMLElement).classList.contains('point-item-del')) return;
-          const id = item.getAttribute('data-id');
-          if (id) {
-            pointsManager.flyToPoint(id);
-            const pt = points.find(p => p.id === id);
-            if (pt) pointsManager['onPointSelectedCallback']?.(pt);
-          }
-        });
-      });
-
-      pointsListContainer.querySelectorAll<HTMLButtonElement>('.point-item-del').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const id = btn.getAttribute('data-delete-id');
-          if (id) pointsManager.deletePoint(id);
-        });
-      });
-    };
-
-    pointsManager.onPointsUpdated((pts) => {
-      updatePointsDrawerList(pts);
-    });
-    updatePointsDrawerList(pointsManager.getPoints());
+    document.getElementById('railBtnReset')?.addEventListener('click', resetView);
 
     // =========================================================================
-    // 12. KEYBOARD SHORTCUTS & ESCAPE DISMISSAL
+    // REAL-TIME SPATIAL TELEMETRY & ROTATING COMPASS NEEDLE
     // =========================================================================
-    window.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      if (e.key === 'Escape') {
-        pointsManager.setAddMode(false);
-        closeModal();
-        if (pointDetailCard) pointDetailCard.style.display = 'none';
-        toggleDrawer(false);
-
-        if (isViewshedPlacementMode) {
-          exitViewshed();
-        }
-        if (viewshedModal) viewshedModal.style.display = 'none';
-        if (!viewshedManager.isEnabled()) {
-          const vsHudLegend = document.getElementById('viewshedHudLegend');
-          if (vsHudLegend) vsHudLegend.style.display = 'none';
-        }
-      } else if (e.key === '+' || e.key === '=') {
-        e.preventDefault();
-        zoomIn();
-      } else if (e.key === '-' || e.key === '_') {
-        e.preventDefault();
-        zoomOut();
-      }
-    });
-
-    // =========================================================================
-    // 13. REAL-TIME SPATIAL TELEMETRY
-    // =========================================================================
-    const latEl = document.getElementById('telemetryLat');
-    const lonEl = document.getElementById('telemetryLon');
+    const coordsEl = document.getElementById('telemetryCoords');
     const altEl = document.getElementById('telemetryAlt');
     const headingEl = document.getElementById('telemetryHeading');
+    const compassNeedle = document.getElementById('compassNeedle');
 
     viewer.camera.changed.addEventListener(() => {
       try {
@@ -1117,24 +613,47 @@ async function bootstrapApp() {
           ? viewer.camera.heading
           : 0;
         const heading = Cesium.Math.toDegrees(rawHeading);
+        const compassHeading = Math.round((heading + 360) % 360);
 
-        if (latEl) latEl.textContent = `${lat.toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`;
-        if (lonEl) lonEl.textContent = `${lon.toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;
+        if (coordsEl) {
+          coordsEl.textContent = `${lat.toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${lon.toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;
+        }
         if (altEl) {
           altEl.textContent = alt >= 1000
             ? `${(alt / 1000).toFixed(1)} km`
             : `${Math.round(alt)} m`;
         }
         if (headingEl) {
-          const compassHeading = Math.round((heading + 360) % 360);
-          headingEl.textContent = `${compassHeading}°`;
+          headingEl.textContent = `${compassHeading}° N`;
+        }
+
+        if (compassNeedle) {
+          compassNeedle.style.transform = `rotate(${-compassHeading}deg)`;
         }
       } catch (err) {
-        // Guard against any telemetry calculation errors during mode morph transitions
+        // Guard against telemetry errors during mode morph transitions
       }
     });
 
-    console.log('✅ Kutch 3D Interactive Map initialized with Google Maps Rail & Drawer navigation.');
+    // Keyboard Shortcuts & Escape
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'Escape') {
+        pointsManager.setAddMode(false);
+        closeModal();
+        if (pointDetailCard) pointDetailCard.style.display = 'none';
+        if (isViewshedPlacementMode) exitViewshed();
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        zoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        zoomOut();
+      }
+    });
+
+    console.log('✅ Kutch 3D Interactive Map ready: Tour removed from sidebar.');
   } catch (err) {
     console.error('Failed to initialize 3D Map:', err);
   }

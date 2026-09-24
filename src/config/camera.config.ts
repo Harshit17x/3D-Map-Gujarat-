@@ -42,8 +42,8 @@ export const DEFAULT_CAMERA_VIEW = {
 export const CAMERA_PRESETS = [
   {
     id: 'default',
-    label: 'Oblique Expanse',
-    description: 'Looking North across the vast salt flats',
+    label: 'White Desert Expanse',
+    description: 'Looking North across the horizon-to-horizon crystalline salt flats',
     destination: Cesium.Cartesian3.fromDegrees(69.850, 23.830, 2600.0),
     orientation: {
       heading: Cesium.Math.toRadians(0.0),
@@ -53,8 +53,8 @@ export const CAMERA_PRESETS = [
   },
   {
     id: 'sunset',
-    label: 'Sunset View',
-    description: 'Looking West toward the Arabian Sea horizon',
+    label: 'White Rann Sunset View',
+    description: 'Looking West toward the Arabian Sea horizon with evening reflections',
     destination: Cesium.Cartesian3.fromDegrees(69.880, 23.870, 2200.0),
     orientation: {
       heading: Cesium.Math.toRadians(270.0),
@@ -63,9 +63,31 @@ export const CAMERA_PRESETS = [
     }
   },
   {
+    id: 'tentcity',
+    label: 'Rann Utsav Tent City',
+    description: 'Vibrant cultural encampment and festival hub near Dhordo',
+    destination: Cesium.Cartesian3.fromDegrees(69.509, 23.785, 1400.0),
+    orientation: {
+      heading: Cesium.Math.toRadians(25.0),
+      pitch: Cesium.Math.toRadians(-28.0),
+      roll: 0.0
+    }
+  },
+  {
+    id: 'kalodungar',
+    label: 'Kalo Dungar (Black Hills)',
+    description: 'Highest peak in Kutch (462m) with panoramic cliff vistas overlooking the Great Rann',
+    destination: Cesium.Cartesian3.fromDegrees(69.816, 23.880, 2000.0),
+    orientation: {
+      heading: Cesium.Math.toRadians(15.0),
+      pitch: Cesium.Math.toRadians(-22.0),
+      roll: 0.0
+    }
+  },
+  {
     id: 'ortho',
-    label: 'Top-down Ortho',
-    description: 'Nadir vertical view for area and boundary inspection',
+    label: 'Top-down Nadir Map',
+    description: 'Vertical 90° view for topographical boundary inspection',
     destination: Cesium.Cartesian3.fromDegrees(69.850, 23.870, 7500.0),
     orientation: {
       heading: Cesium.Math.toRadians(0.0),
