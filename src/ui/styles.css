@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Base & Resets
+   Base & Resets (Google Maps Authentic Light Aesthetic)
    ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -11,9 +11,9 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #0b0f19;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #f8fafc;
+  background-color: #e5e3df;
+  font-family: 'Inter', Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #202124;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -27,19 +27,16 @@ html, body {
 }
 
 /* ==========================================================================
-   Cesium Chrome Overrides (clean minimalist canvas)
+   Cesium Chrome Overrides
    ========================================================================== */
-.cesium-viewer-bottom {
-  display: none !important;
-}
-
+.cesium-viewer-bottom,
 .cesium-credit-logoContainer,
 .cesium-credit-expand-link {
   display: none !important;
 }
 
 /* ==========================================================================
-   HUD Overlay & Glassmorphism Design System
+   HUD Overlay Container
    ========================================================================== */
 #appHud {
   position: absolute;
@@ -49,743 +46,810 @@ html, body {
   height: 100%;
   pointer-events: none;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1.25rem;
 }
 
 .hud-interactive {
   pointer-events: auto;
 }
 
-.glass-panel {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  box-shadow: none;
-}
-
 /* ==========================================================================
-   Top Header & Branding
+   1. Google Maps Slim Left Rail (Reference Image 2)
    ========================================================================== */
-.hud-header {
+.gmap-rail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 68px;
+  background: #ffffff;
+  border-right: 1px solid #dadce0;
+  box-shadow: 1px 0 6px rgba(60,64,67,0.12);
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.brand-card {
-  padding: 0.9rem 1.25rem;
-  max-width: 380px;
-}
-
-.brand-badge {
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.2rem 0.6rem;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 9999px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #38bdf8;
-  margin-bottom: 0.4rem;
+  padding: 10px 0 12px;
+  gap: 2px;
+  z-index: 100;
+  user-select: none;
 }
 
-.pulse-dot {
-  width: 6px;
-  height: 6px;
+.rail-item {
+  width: 58px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  color: #3c4043;
+  transition: all 0.15s ease;
+}
+
+.rail-item:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.rail-icon-wrap {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: #38bdf8;
-  box-shadow: 0 0 8px #38bdf8;
-  animation: pulse 2s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.15s ease;
 }
 
-@keyframes pulse {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+.rail-item:hover .rail-icon-wrap {
+  background: #e8eaed;
 }
 
-.brand-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+.rail-item.active {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+.rail-item.active .rail-icon-wrap {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.rail-item.active svg {
+  stroke: #1a73e8;
+}
+
+.rail-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rail-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #1a73e8;
   color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 9999px;
   line-height: 1.2;
 }
 
-.brand-subtitle {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-}
-
-/* ==========================================================================
-   Top-Right Control Deck
-   ========================================================================== */
-.control-deck {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  align-items: flex-end;
-}
-
-.segmented-group {
+.rail-hero-pill {
+  width: 44px;
+  height: 32px;
+  border: 2px solid #1a73e8;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
-  padding: 0.25rem;
-  gap: 0.25rem;
+  justify-content: center;
+  color: #1a73e8;
+  background: #ffffff;
+  transition: all 0.15s ease;
+  font-size: 1.1rem;
 }
 
-.hud-btn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 500;
-  padding: 0.45rem 0.85rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+.rail-item:hover .rail-hero-pill {
+  background: #e8f0fe;
 }
 
-.hud-btn:hover {
+.rail-item.active .rail-hero-pill {
+  background: #1a73e8;
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
 }
 
-.hud-btn.active {
-  color: #0b0f19;
-  background: #38bdf8;
-  font-weight: 600;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+.rail-divider {
+  width: 44px;
+  height: 1px;
+  background: #e8eaed;
+  margin: 6px 0;
 }
 
-.action-row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  padding: 0.5rem 0.9rem;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  transition: all 0.2s ease;
-}
-
-.action-btn:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
-  transform: translateY(-1px);
-}
-
-.action-btn:active {
-  transform: translateY(0);
-}
-
-.action-btn.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-}
-
-.action-btn:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.7);
-  outline-offset: 2px;
+.rail-spacer {
+  flex: 1;
 }
 
 /* ==========================================================================
-   Bottom-Left 3D Navigation D-Pad & View Controller
+   2. Google Maps Flyout Drawer / Sidebar (Reference Image 1)
    ========================================================================== */
-.hud-bottom-left {
+.gmap-drawer {
+  position: absolute;
+  top: 0;
+  left: 68px;
+  bottom: 0;
+  width: 360px;
+  max-width: calc(100vw - 68px);
+  background: #ffffff;
+  border-right: 1px solid #dadce0;
+  box-shadow: 4px 0 20px rgba(60,64,67,0.18);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  align-items: flex-start;
+  z-index: 95;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
-.nav-dpad-card {
-  padding: 0.75rem 0.85rem;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  user-select: none;
-  -webkit-user-select: none;
-  min-width: 175px;
+.gmap-drawer.drawer-closed {
+  transform: translateX(-100%);
+  pointer-events: none;
 }
 
-.dpad-card-header {
+/* Drawer Header (like Image 1) */
+.drawer-header-row {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid #e8eaed;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.dpad-title-wrap {
+.drawer-brand {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.dpad-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #e2e8f0;
+.gmap-logo-text {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-.dpad-mode-toggle {
-  display: flex;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 6px;
-  padding: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+.g-blue   { color: #4285F4; }
+.g-red    { color: #EA4335; }
+.g-yellow { color: #FBBC05; }
+.g-green  { color: #34A853; }
+
+.drawer-sub {
+  font-size: 0.74rem;
+  color: #5f6368;
 }
 
-.dpad-mode-btn {
+.drawer-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
   background: transparent;
   border: none;
-  color: #94a3b8;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
+  color: #5f6368;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.dpad-mode-btn:hover {
-  color: #f8fafc;
+.drawer-close-btn:hover {
+  background: #f1f3f4;
+  color: #202124;
 }
 
-.dpad-mode-btn.active {
-  background: #38bdf8;
-  color: #0b0f19;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+/* Drawer Scrollable Content */
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
 }
 
-.dpad-body {
+.drawer-content::-webkit-scrollbar {
+  width: 5px;
+}
+.drawer-content::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 10px;
+}
+
+/* Drawer Hero Button (like "Ask Maps" in Image 1) */
+.drawer-hero-container {
+  padding: 8px 18px 12px;
+}
+
+.drawer-hero-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(60,64,67,0.12);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Inter', Roboto, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #1a73e8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.drawer-hero-btn:hover {
+  background: #f8fafd;
+  border-color: #1a73e8;
+  box-shadow: 0 2px 6px rgba(26,115,232,0.2);
+}
+
+.drawer-hero-btn.active-mode {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+  font-weight: 600;
+}
+
+.drawer-hero-icon {
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Collapsible list inside drawer for Saved Points */
+.drawer-saved-collapsible {
   display: flex;
   flex-direction: column;
+  background: #f8f9fa;
+  border-top: 1px solid #e8eaed;
+  border-bottom: 1px solid #e8eaed;
+  padding: 8px 12px;
+  gap: 6px;
+}
+
+/* Drawer Toggle Row (like Image 1 "Show side bar" toggle) */
+.drawer-toggle-row {
+  padding: 12px 18px;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.15s;
+}
+
+.drawer-toggle-row:hover {
+  background: #f8f9fa;
+}
+
+.drawer-row-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.drawer-row-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #5f6368;
+}
+
+.drawer-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.drawer-row-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #202124;
+}
+
+.drawer-row-desc {
+  font-size: 0.72rem;
+  color: #5f6368;
+}
+
+/* Action Rows (clickable list items like Image 1) */
+.drawer-action-row {
+  width: 100%;
+  padding: 12px 18px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.drawer-action-row:hover {
+  background: #f8f9fa;
+}
+
+.drawer-action-row:active {
+  background: #f1f3f4;
+}
+
+.drawer-row-arrow {
+  font-size: 1.1rem;
+  color: #bdc1c6;
+  font-weight: 300;
+}
+
+.drawer-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #1a73e8;
+  background: #e8f0fe;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* Google-style Toggle Switch (Image 1) */
+.gmap-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.gmap-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.gmap-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #bdc1c6;
+  border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gmap-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gmap-switch input:checked + .gmap-slider {
+  background-color: #007b83;
+  background-color: #1a73e8;
+}
+
+.gmap-switch input:checked + .gmap-slider:before {
+  transform: translateX(18px);
+}
+
+.drawer-divider {
+  height: 1px;
+  background: #e8eaed;
+  margin: 8px 0;
+}
+
+.drawer-section-title {
+  padding: 10px 18px 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #70757a;
+}
+
+/* View Mode Segmented Controls */
+.view-mode-container {
+  padding: 8px 18px 12px;
+}
+
+.view-mode-pills {
+  display: flex;
+  background: #f1f3f4;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.view-pill {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 7px 6px;
+  border-radius: 6px;
+  font-family: 'Inter', Roboto, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #5f6368;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.view-pill:hover {
+  color: #202124;
+}
+
+.view-pill.active {
+  background: #ffffff;
+  color: #1a73e8;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(60,64,67,0.15);
+}
+
+/* 3D Navigation Card inside Drawer */
+.drawer-nav-card {
+  margin: 8px 18px 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-mode-switcher {
+  display: flex;
+  background: #e8eaed;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.nav-mode-pill {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: #5f6368;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.nav-mode-pill.active {
+  background: #ffffff;
+  color: #1a73e8;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(60,64,67,0.15);
+}
+
+.nav-controls-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .dpad-cross-container {
   display: grid;
   grid-template-columns: repeat(3, 34px);
   grid-template-rows: repeat(3, 34px);
-  gap: 4px;
+  gap: 3px;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .dpad-btn {
   width: 34px;
   height: 34px;
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #ffffff;
+  border: 1px solid #dadce0;
   border-radius: 8px;
-  color: #e2e8f0;
+  color: #3c4043;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(60,64,67,0.12);
+  transition: all 0.12s ease;
   touch-action: none;
 }
 
 .dpad-btn:hover {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.5);
-  color: #38bdf8;
-  transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  background: #f8f9fa;
+  border-color: #1a73e8;
+  color: #1a73e8;
+  transform: scale(1.04);
 }
 
 .dpad-btn:active {
-  transform: scale(0.92);
-  background: rgba(56, 189, 248, 0.35);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+  background: #e8f0fe;
+  transform: scale(0.94);
 }
 
-.dpad-up {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.dpad-left {
-  grid-column: 1;
-  grid-row: 2;
-}
-
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
 .dpad-center {
-  grid-column: 2;
-  grid-row: 2;
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(56, 189, 248, 0.35);
-  font-size: 0.85rem;
+  grid-column: 2; grid-row: 2;
+  background: #f8f9fa;
+  border-color: #dadce0;
+  font-size: 0.9rem;
 }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 3; }
 
-.dpad-center:hover {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.25);
-}
-
-.dpad-right {
-  grid-column: 3;
-  grid-row: 2;
-}
-
-.dpad-down {
-  grid-column: 2;
-  grid-row: 3;
-}
-
-.dpad-compass-icon {
-  display: inline-block;
-  transition: transform 0.2s ease;
-}
-
-.dpad-center:hover .dpad-compass-icon {
-  transform: rotate(20deg);
-}
-
-.dpad-quick-actions {
+.nav-quick-side {
+  flex: 1;
   display: flex;
-  gap: 0.4rem;
-  width: 100%;
+  flex-direction: column;
+  gap: 8px;
 }
 
+.nav-zoom-group,
+.nav-angle-group {
+  display: flex;
+  gap: 6px;
+}
+
+.nav-zoom-btn,
 .dpad-pill-btn {
   flex: 1;
-  padding: 0.32rem 0.5rem;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  color: #cbd5e1;
-  font-size: 0.68rem;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  color: #3c4043;
+  font-size: 0.74rem;
   font-weight: 500;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 4px;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
+.nav-zoom-btn:hover,
 .dpad-pill-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
+  background: #e8f0fe;
+  border-color: #1a73e8;
+  color: #1a73e8;
 }
 
-.dpad-pill-btn:active {
-  transform: translateY(1px);
-}
-
-/* ==========================================================================
-   Bottom Telemetry & Spatial Stats
-   ========================================================================== */
-.hud-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-}
-
-.telemetry-card {
-  padding: 0.7rem 1.15rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.stat-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #64748b;
-}
-
-.stat-value {
-  font-family: 'Outfit', monospace;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #f1f5f9;
-}
-
-.stat-divider {
-  width: 1px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.hint-pill {
-  padding: 0.55rem 1rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.key-badge {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  color: #e2e8f0;
-}
-
-/* ==========================================================================
-   Floating Navigation Controls (Zoom In/Out Dock)
-   ========================================================================== */
+/* Floating Bottom-Left 3D Nav Dock (Next to rail) */
 .hud-nav-dock {
   position: absolute;
-  right: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 24px;
+  left: 82px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(60,64,67,0.2);
+  padding: 12px;
+  z-index: 40;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  z-index: 20;
-}
-
-.nav-control-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.3rem;
-  border-radius: 12px;
-}
-
-.nav-icon-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  border-radius: 9px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.nav-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #38bdf8;
-  transform: scale(1.08);
-}
-
-.nav-icon-btn:active {
-  transform: scale(0.95);
-  background: rgba(56, 189, 248, 0.2);
-}
-
-.nav-btn-divider {
-  width: 24px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 0.2rem 0;
-}
-
-/* ==========================================================================
-   Placement Banner (When Add Point Mode is Active)
-   ========================================================================== */
-.placement-banner {
-  position: absolute;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.65rem 1.4rem;
-  background: rgba(14, 165, 233, 0.22);
-  border: 1px solid rgba(56, 189, 248, 0.55);
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
-  border-radius: 9999px;
-  backdrop-filter: blur(16px);
-  z-index: 50;
-  animation: bannerFadeIn 0.3s ease;
-}
-
-@keyframes bannerFadeIn {
-  from { opacity: 0; transform: translate(-50%, -10px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-.banner-pulse {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #38bdf8;
-  box-shadow: 0 0 10px #38bdf8;
-  animation: pulse 1.5s infinite;
-}
-
-.banner-text {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.banner-cancel-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  color: #e2e8f0;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.banner-cancel-btn:hover {
-  background: rgba(239, 68, 68, 0.6);
-  color: #ffffff;
-}
-
-.action-btn.active-mode {
-  background: #38bdf8 !important;
-  color: #0b0f19 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
-}
-
-/* ==========================================================================
-   Point Creation Modal Dialog
-   ========================================================================== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(11, 15, 25, 0.65);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
+  gap: 10px;
   pointer-events: auto;
-  animation: fadeIn 0.2s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  user-select: none;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.hud-nav-dock.dock-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
 }
 
-.modal-dialog {
-  width: 90%;
-  max-width: 440px;
-  padding: 1.5rem;
+/* Telemetry Grid */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.telem-cell {
+  background: #ffffff;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 7px 9px;
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  gap: 1px;
 }
 
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.modal-close-btn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.2rem;
-  line-height: 1;
-}
-
-.modal-close-btn:hover {
-  color: #ffffff;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.form-label {
-  font-size: 0.72rem;
+.telem-label {
+  font-size: 0.64rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94a3b8;
+  color: #70757a;
 }
 
-.form-input, .form-textarea, .form-select {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-}
-
-.coords-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.category-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.chip-btn {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
-  padding: 0.4rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.76rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  transition: all 0.2s ease;
-}
-
-.chip-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.4);
-}
-
-.chip-btn.selected {
-  background: #38bdf8;
-  border-color: #38bdf8;
-  color: #0b0f19;
+.telem-val {
+  font-family: 'Outfit', 'Inter', monospace;
+  font-size: 0.84rem;
   font-weight: 600;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.btn-secondary {
-  padding: 0.55rem 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-primary {
-  padding: 0.55rem 1.25rem;
-  background: #38bdf8;
-  border: none;
-  color: #0b0f19;
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
-  transition: transform 0.15s;
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  background: #7dd3fc;
+  color: #202124;
 }
 
 /* ==========================================================================
-   Point Detail Floating Card
+   3. Placement Banners (Clean Floating Google Maps Prompt at Top Center)
+   ========================================================================== */
+.placement-banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 9999px;
+  box-shadow: 0 4px 16px rgba(60,64,67,0.25), 0 1px 3px rgba(60,64,67,0.15);
+  z-index: 60;
+  pointer-events: auto;
+  animation: bannerSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bannerSlideDown {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.banner-icon {
+  font-size: 1.1rem;
+}
+
+.banner-text {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #202124;
+}
+
+.banner-cancel-btn {
+  background: #f1f3f4;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.banner-cancel-btn:hover {
+  background: #d93025;
+  border-color: #d93025;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   4. Saved Points Drawer & List
+   ========================================================================== */
+.points-list {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.point-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.point-item:hover {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+}
+
+.point-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.point-item-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.point-item-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.point-item-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.point-item-sub {
+  font-size: 0.7rem;
+  color: #70757a;
+}
+
+.point-item-del {
+  background: transparent;
+  border: none;
+  color: #70757a;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.point-item-del:hover {
+  color: #d93025;
+  background: #fce8e6;
+}
+
+/* ==========================================================================
+   5. Point Detail Floating Card (Google Maps Place Card)
    ========================================================================== */
 .point-detail-card {
   position: absolute;
-  bottom: 5.5rem;
-  left: 1.25rem;
-  width: 340px;
-  padding: 1.2rem;
+  bottom: 24px;
+  left: 84px;
+  width: 320px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  z-index: 30;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 10px;
+  z-index: 45;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(60,64,67,0.25);
+  animation: cardSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slideUp {
+@keyframes cardSlideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -800,258 +864,278 @@ html, body {
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.15rem 0.55rem;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
   border-radius: 9999px;
+  background: #e8f0fe;
+  color: #1a73e8;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 4px;
 }
 
 .card-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.05rem;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.08rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #202124;
   line-height: 1.25;
 }
 
 .card-desc {
-  font-size: 0.78rem;
-  color: #94a3b8;
+  font-size: 0.8rem;
+  color: #5f6368;
   line-height: 1.45;
 }
 
 .card-coords {
   font-family: monospace;
-  font-size: 0.72rem;
-  color: #64748b;
-  padding-top: 0.3rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.74rem;
+  color: #70757a;
+  padding-top: 6px;
+  border-top: 1px solid #e8eaed;
 }
 
 .card-btn-row {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .card-fly-btn {
   flex: 1;
-  padding: 0.45rem 0.75rem;
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
-  font-size: 0.78rem;
+  padding: 8px 12px;
+  background: #1a73e8;
+  border: none;
+  color: #ffffff;
+  font-size: 0.8rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
+  gap: 6px;
+  transition: all 0.15s;
 }
 
 .card-fly-btn:hover {
-  background: #38bdf8;
-  color: #0b0f19;
+  background: #174ea6;
 }
 
 .card-del-btn {
-  padding: 0.45rem 0.65rem;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
-  font-size: 0.78rem;
+  padding: 8px 10px;
+  background: #fce8e6;
+  border: 1px solid #f5c2c7;
+  color: #d93025;
+  font-size: 0.8rem;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .card-del-btn:hover {
-  background: #ef4444;
+  background: #d93025;
   color: #ffffff;
 }
 
 /* ==========================================================================
-   Saved Points Drawer
+   6. Modals (Clean Solid White Material Dialogs)
    ========================================================================== */
-.points-drawer {
-  position: absolute;
-  top: 4.8rem;
-  right: 1.25rem;
-  width: 320px;
-  max-height: 70vh;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(32, 33, 36, 0.45);
   display: flex;
-  flex-direction: column;
-  z-index: 30;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  pointer-events: auto;
   animation: fadeIn 0.2s ease;
-  overflow: hidden;
 }
 
-.drawer-header {
-  padding: 0.9rem 1.1rem;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-dialog {
+  width: 90%;
+  max-width: 440px;
+  padding: 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-direction: column;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(60,64,67,0.3);
 }
 
-.drawer-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #ffffff;
-}
-
-.points-list {
-  overflow-y: auto;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  max-height: 50vh;
-}
-
-.point-item {
+  color: #202124;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.55rem 0.75rem;
-  border-radius: 8px;
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  cursor: pointer;
-  transition: all 0.2s;
+  gap: 8px;
 }
 
-.point-item:hover {
-  background: rgba(56, 189, 248, 0.12);
-  border-color: rgba(56, 189, 248, 0.3);
-}
-
-.point-item-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  overflow: hidden;
-}
-
-.point-item-icon {
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.point-item-text {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.point-item-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #f1f5f9;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.point-item-sub {
-  font-size: 0.68rem;
-  color: #64748b;
-}
-
-.point-item-del {
+.modal-close-btn {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #5f6368;
+  font-size: 1.3rem;
   cursor: pointer;
-  padding: 0.2rem;
-  border-radius: 4px;
+  padding: 2px;
+  line-height: 1;
 }
 
-.point-item-del:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
+.modal-close-btn:hover {
+  color: #202124;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5f6368;
+}
+
+.form-input, .form-textarea {
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #202124;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus, .form-textarea:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+}
+
+.coords-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-btn {
+  background: #f8f9fa;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.chip-btn:hover {
+  background: #f1f3f4;
+  border-color: #bdc1c6;
+}
+
+.chip-btn.selected {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn-secondary {
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover {
+  background: #f8f9fa;
+}
+
+.btn-primary {
+  padding: 8px 18px;
+  background: #1a73e8;
+  border: none;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(26,115,232,0.3);
+  transition: background 0.15s;
+}
+
+.btn-primary:hover {
+  background: #174ea6;
 }
 
 /* ==========================================================================
-   Responsive Adaptations
-   ========================================================================== */
-@media (max-width: 768px) {
-  #appHud {
-    padding: 0.75rem;
-  }
-
-  .hud-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .brand-card {
-    max-width: 100%;
-  }
-
-  .control-deck {
-    align-items: stretch;
-  }
-
-  .hud-nav-dock {
-    right: 0.75rem;
-    top: auto;
-    bottom: 5.5rem;
-    transform: none;
-  }
-
-  .telemetry-card {
-    gap: 0.75rem;
-    overflow-x: auto;
-  }
-
-  .hint-pill {
-    display: none;
-  }
-
-  .point-detail-card {
-    left: 0.75rem;
-    right: 0.75rem;
-    width: auto;
-    bottom: 4.8rem;
-  }
-
-  .points-drawer {
-    left: 0.75rem;
-    right: 0.75rem;
-    width: auto;
-    top: 5rem;
-  }
-}
-
-/* ==========================================================================
-   Viewshed HUD Legend
+   7. Viewshed HUD Legend (Floating Pill in Bottom-Right)
    ========================================================================== */
 .viewshed-hud-legend {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.35rem 0.85rem;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
+  gap: 10px;
+  padding: 7px 14px;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 0.78rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: #202124;
   border-radius: 9999px;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  transition: all 0.25s ease;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  box-shadow: 0 2px 8px rgba(60,64,67,0.2);
+  z-index: 30;
+  pointer-events: auto;
 }
 
 .vs-legend-title {
-  color: #94a3b8;
+  color: #70757a;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.68rem;
@@ -1061,7 +1145,7 @@ html, body {
 .vs-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 5px;
 }
 
 .vs-legend-swatch {
@@ -1072,12 +1156,41 @@ html, body {
 }
 
 .vs-legend-swatch.vs-visible {
-  background: #00ff78;
-  box-shadow: 0 0 8px rgba(0, 255, 120, 0.7);
+  background: #00c853;
+  box-shadow: 0 0 6px rgba(0, 200, 83, 0.6);
 }
 
 .vs-legend-swatch.vs-blocked {
-  background: #ff3c3c;
-  box-shadow: 0 0 8px rgba(255, 60, 60, 0.7);
+  background: #d50000;
+  box-shadow: 0 0 6px rgba(213, 0, 0, 0.6);
 }
 
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 768px) {
+  .gmap-rail {
+    width: 56px;
+    padding: 6px 0;
+  }
+  .rail-item {
+    width: 48px;
+    padding: 4px 1px;
+  }
+  .rail-icon-wrap {
+    width: 32px;
+    height: 32px;
+  }
+  .rail-label {
+    font-size: 0.6rem;
+  }
+  .gmap-drawer {
+    left: 56px;
+    width: calc(100vw - 56px);
+  }
+  .point-detail-card {
+    left: 64px;
+    right: 12px;
+    width: auto;
+  }
+}

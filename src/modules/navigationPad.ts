@@ -108,7 +108,7 @@ export function panCamera(
 /**
  * Attaches mouse down / touch hold continuous action dispatcher.
  */
-function bindHoldAction(element: HTMLElement | null, action: (continuous: boolean) => void): void {
+export function bindHoldAction(element: HTMLElement | null, action: (continuous: boolean) => void): void {
   if (!element) return;
 
   let timer: number | null = null;
