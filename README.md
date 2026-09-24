@@ -12,7 +12,7 @@ The application visualizes high-resolution satellite imagery integrated with a *
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 ### 1. Direct-Access Left Navigation Rail (Google Maps-Style)
 - **Minimalist Icon Rail**: Sleek, vertical left navigation rail providing instant one-click access to all primary analytical and visualization tools without cluttering the 3D globe.
@@ -32,8 +32,8 @@ The application visualizes high-resolution satellite imagery integrated with a *
   - Samples **360 radial bearings** at `1.0°` angular resolution with up to 50 radial distance steps (extending up to 2,500m).
   - Eliminates diamond/square interpolation artifacts, rendering smooth, solid, continuous visibility patches.
 - **Terrain-Clamped Surface Classification**: Uses Cesium's `ClassificationType.TERRAIN` ground polygons:
-  - 🟢 **Visible Areas (Green)**: Direct line of sight from the observer's eye height.
-  - 🔴 **Occluded Areas (Red)**: Obstructed by terrain ridges, dunes, or elevation relief.
+  - **Visible Areas (Green)**: Direct line of sight from the observer's eye height.
+  - **Occluded Areas (Red)**: Obstructed by terrain ridges, dunes, or elevation relief.
 - **HUD Legend & Clear Control**: Live floating status pill indicating visibility color states with a single-click "Clear" button.
 
 ### 3. Floating On-Screen 3D Navigation D-Pad & Controls
@@ -75,13 +75,13 @@ The application visualizes high-resolution satellite imagery integrated with a *
 
 ---
 
-## 🎮 Navigation & Keyboard Controls
+## Navigation & Keyboard Controls
 
 | Control | Action |
 | :--- | :--- |
 | **D-Pad Up / Down** | Tilt camera pitch (horizon ↔ nadir) |
 | **D-Pad Left / Right** | Rotate / yaw camera heading around terrain center |
-| **D-Pad Center (🧭)** | Reset heading to True North (`0°`) and restore 3D pitch |
+| **D-Pad Center (Compass)** | Reset heading to True North (`0°`) and restore 3D pitch |
 | **Floating `+` / `−`** | Zoom in / Zoom out toward terrain |
 | **`+` / `=` / `-` / `_` (Keyboard)** | Zoom in / Zoom out |
 | **`Escape` (Keyboard)** | Cancel active pin or viewshed placement |
@@ -91,7 +91,7 @@ The application visualizes high-resolution satellite imagery integrated with a *
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```
 3D-Map-Gujarat-/
@@ -126,7 +126,7 @@ The application visualizes high-resolution satellite imagery integrated with a *
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -179,7 +179,7 @@ npm run preview
 
 ---
 
-## 🐍 DTM Processing Pipeline (Python)
+## DTM Processing Pipeline (Python)
 
 To re-generate or modify the analytical hillshade and contour overlays from raw GeoTIFF elevation rasters:
 
@@ -198,7 +198,7 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
 
 ---
 
-## 🛰️ Data Credits & Attributions
+## Data Credits & Attributions
 
 - **Elevation Model**: [Copernicus DEM GLO-30](https://spacedata.copernicus.eu/) (European Space Agency / Sinergise)
 - **3D Globe Engine**: [CesiumJS](https://cesium.com/platform/cesiumjs/)
@@ -206,6 +206,6 @@ To re-generate or modify the analytical hillshade and contour overlays from raw 
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
